@@ -23,14 +23,21 @@
 */
 
 #include "ead_server.h"
+#include "bootstrap.h"
 #include "tests.h"
 
 //#include "configuration.h"
 
 int main(int argc, char* argv[]) {
 
-	run_all_tests();
+//	run_all_tests();
 
+	int rv = bs_init();
+	if (rv != E_BS_OK) {
+		exit(rv);
+	}
+	bs_start();
+	bs_cleanup();
 
     return 0;
 }

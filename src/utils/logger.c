@@ -27,7 +27,7 @@
 #include <stdarg.h>
 #include "logger.h"
 
-logger_output_types_e local_log_type;
+logger_output_types_e local_log_type = L_NONE;
 
 
 int log_init_ex(const char *application_name, logger_output_types_e log_type) {
@@ -50,12 +50,18 @@ int log_init_ex(const char *application_name, logger_output_types_e log_type) {
 }
 
 void log_write(int level, char *format, ...) {
+	if (local_log_type == L_NONE)
+		return;
+
 	va_list ap;
 	va_start(ap, format);
 	char buf[256];
 
-	vsnprintf(buf, 256, format, ap);
-	syslog(level, buf);
+	if ((local_log_type & L_SYSLOG) == L_SYSLOG) {
+		vsnprintf(buf, 256, format, ap);
+		syslog(level, buf);
+	}
+
 	va_end(ap);
 
 }

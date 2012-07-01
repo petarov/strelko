@@ -28,7 +28,8 @@
 
 enum bs_errors_e {
 	E_BS_OK,
-	E_BS_APR_INIT_FAILED
+	E_BS_LOG_FAILED,
+	E_BS_APR_FAILED
 };
 typedef enum bs_errors_e bs_errors_e;
 
@@ -37,5 +38,15 @@ typedef enum bs_errors_e bs_errors_e;
  * @return Error code during initialization. E_BS_OK means all is successful.
  */
 int bs_init();
+
+/**
+ * Application entry point
+ */
+void bs_start();
+
+/**
+ * Frees all resources before closing the application
+ */
+void bs_cleanup();
 
 #endif /* BOOTSTRAP_H_ */

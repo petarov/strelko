@@ -29,6 +29,7 @@
 #include <syslog.h>
 
 enum logger_output_types_e {
+	L_NONE = 0,
 	L_SYSLOG = 0x00000001
 };
 typedef enum logger_output_types_e logger_output_types_e;
@@ -59,6 +60,12 @@ void log_write(int level, char *format, ...);
 #define log_warn(...) log_write(LOG_WARNING, __VA_ARGS__)  /* warning conditions */
 #define log_err(...) log_write(LOG_ERR, __VA_ARGS__)  /* error conditions */
 #define log_crit(...) log_write(LOG_CRIT, __VA_ARGS__)  /* critical conditions */
+
+#ifdef DEBUG
+#define TRACE log_debug("%s %d", __FILE__, __LINE__)
+#else
+#define TRACE
+#endif
 
 /**
  * Cleanup logging resources
