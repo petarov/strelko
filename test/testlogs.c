@@ -1,7 +1,8 @@
 /*
+  testlogs.c
   This file is part of e-additives.server
 
-  Copyright (C) 2012 Petar Petrov
+  Copyright (C) 2012 necroleak
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,15 +23,37 @@
 
 */
 
-#include "ead_server.h"
 #include "tests.h"
+#include "utils/logger.h"
 
-//#include "configuration.h"
+void test_logs_1() {
 
-int main(int argc, char* argv[]) {
+	int rv = log_init("Test app");
+	if (rv != 0) {
+		fprintf(stderr, "Failed to init log system err = %d", rv);
+		assert( 0);
+	}
 
-	run_all_tests();
+	log_debug("This is a debug message 1.");
+	log_debug("This is a debug message with ID=%d and ID=%d", 2, 3);
+	log_debug("This is a debug message with STR=%s and ID=%d", "Test string", 3);
 
+	log_notice("This is a notice message.");
+	log_info("This is a info message.");
+	log_warn("This is a warning message.");
+	log_err("This is an error message!");
+	log_crit("This is a CRITICAL error message!!");
 
-    return 0;
+	log_close();
+}
+
+void test_logs_2() {
+
+	int rv = log_init_ex("Test app", 2);
+	if (rv != 0) {
+		fprintf(stderr, "Failed to init log system err = %d", rv);
+		assert(0);
+	}
+
+	log_close();
 }

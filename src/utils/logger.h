@@ -26,14 +26,44 @@
 #ifndef LOGGER_H_
 #define LOGGER_H_
 
-struct logger_context_t {
-	char[32] id;
+#include <syslog.h>
 
+enum logger_output_types_e {
+	L_SYSLOG = 0x00000001
 };
+typedef enum logger_output_types_e logger_output_types_e;
 
-typedef struct logger_context_t logger_context_t;
+/**
+ * Initilize logging system
+ * @param application_name Name of application that logs the message. If NULL is passed, the executable name from
+ * argv[0] will be used.
+ * @param log_type Type of logging output.
+ * @remark Currently only SYSLOG logging supported.
+ */
+int log_init_ex(const char *application_name, logger_output_types_e log_type);
 
-int log_init(logger_context_t **context);
+/**
+ * Default logger initialization uses Unix syslog
+ */
+#define log_init(name) log_init_ex(name, L_SYSLOG)
+
+/**
+ * @param level
+ * @format
+ */
+void log_write(int level, char *format, ...);
+
+#define log_debug(...) log_write(LOG_DEBUG, __VA_ARGS__)  /* debug-level messages */
+#define log_info(...) log_write(LOG_INFO, __VA_ARGS__)  /* informational */
+#define log_notice(...) log_write(LOG_NOTICE, __VA_ARGS__)  /* normal but significant condition */
+#define log_warn(...) log_write(LOG_WARNING, __VA_ARGS__)  /* warning conditions */
+#define log_err(...) log_write(LOG_ERR, __VA_ARGS__)  /* error conditions */
+#define log_crit(...) log_write(LOG_CRIT, __VA_ARGS__)  /* critical conditions */
+
+/**
+ * Cleanup logging resources
+ */
+void log_close();
 
 
 #endif /* LOGGER_H_ */

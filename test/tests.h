@@ -27,8 +27,17 @@
 #define TESTS_H_
 
 #include "ead_server.h"
+#include <stdio.h>
+#include <stdarg.h>
 
+// control functions
+void run_all_tests();
 
-void test_1();
+// server module
+void test_server_1();
+
+// logging module
+void test_logs_1();
+void test_logs_2();
 
 #endif /* TESTS_H_ */

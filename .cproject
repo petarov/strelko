@@ -30,8 +30,10 @@
 								<option id="gnu.c.compiler.option.include.paths.1724911744" name="Include paths (-I)" superClass="gnu.c.compiler.option.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="/usr/include/apr-1"/>
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/e-additives.server/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/${ProjName}/test}&quot;"/>
 								</option>
 								<option id="gnu.c.compiler.option.misc.other.1122571943" name="Other flags" superClass="gnu.c.compiler.option.misc.other" value="-c -fmessage-length=0" valueType="string"/>
+								<option id="gnu.c.compiler.option.debugging.other.1638348991" name="Other debugging flags" superClass="gnu.c.compiler.option.debugging.other" value="-DDEBUG" valueType="string"/>
 								<inputType id="cdt.managedbuild.tool.gnu.c.compiler.input.496076141" superClass="cdt.managedbuild.tool.gnu.c.compiler.input"/>
 							</tool>
 							<tool id="cdt.managedbuild.tool.gnu.c.linker.exe.debug.1364594217" name="GCC C Linker" superClass="cdt.managedbuild.tool.gnu.c.linker.exe.debug">

@@ -25,7 +25,7 @@
 
 #include "tests.h"
 
-void test_1() {
+void test_server_1() {
 
 	printf("testing ...");
 

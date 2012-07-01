@@ -23,8 +23,27 @@
 
 */
 
+#include "ead_server.h"
+#include "bootstrap.h"
 
 int bs_init() {
 
+	// Init Apache APR
+    apr_status_t rv;
+
+    /* per-process initialization */
+    rv = apr_initialize();
+    if (rv != APR_SUCCESS) {
+        ASSERT(0);
+        return E_BS_APR_INIT_FAILED;
+    }
+
+    return E_BS_OK;
+}
+
+void bs_cleanup() {
+
+	apr_terminate();
 
 }
+

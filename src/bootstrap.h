@@ -26,11 +26,16 @@
 #ifndef BOOTSTRAP_H_
 #define BOOTSTRAP_H_
 
-typedef enum {
-
+enum bs_errors_e {
+	E_BS_OK,
+	E_BS_APR_INIT_FAILED
 };
+typedef enum bs_errors_e bs_errors_e;
 
+/**
+ * Initialize system variables and modules
+ * @return Error code during initialization. E_BS_OK means all is successful.
+ */
 int bs_init();
-
 
 #endif /* BOOTSTRAP_H_ */

@@ -1,7 +1,8 @@
 /*
+  tests.c
   This file is part of e-additives.server
 
-  Copyright (C) 2012 Petar Petrov
+  Copyright (C) 2012 necroleak
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,15 +23,10 @@
 
 */
 
-#include "ead_server.h"
-#include "tests.h"
 
-//#include "configuration.h"
+void run_all_tests() {
 
-int main(int argc, char* argv[]) {
+	test_logs_1();
+	test_logs_2();
 
-	run_all_tests();
-
-
-    return 0;
 }

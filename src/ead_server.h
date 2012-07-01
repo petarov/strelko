@@ -29,10 +29,18 @@
 #include <stdint.h>
 typedef __off64_t off64_t;
 
+#include <assert.h>
+#ifdef DEBUG
+#define ASSERT(x) assert(x)
+#else
+#define ASSERT(x)
+#endif
+
 #define PATH_MAX 256
 
-#include  <apr.h>
-#include  <apr_pools.h>
+#include <apr.h>
+#include <apr_general.h>
+#include <apr_pools.h>
 
 // Local includes
 //#include"typedefs.h"
