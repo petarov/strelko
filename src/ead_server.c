@@ -22,7 +22,7 @@
 
 */
 
-#include "ead_server.h"
+#include "globals.h"
 #include "bootstrap.h"
 #include "tests.h"
 

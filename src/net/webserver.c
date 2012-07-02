@@ -2,7 +2,7 @@
   webserver.c
   This file is part of e-additives.server
 
-  Copyright (C) 2012 necroleak
+  Copyright (C) 2012 Petar Petrov
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -23,14 +23,15 @@
 
 */
 
-#include "ead_server.h"
-#include "webserver.h"
-#include "utils/logger.h"
-
 #include <apr_general.h>
+#include <apr_pools.h>
 #include <apr_file_io.h>
 #include <apr_strings.h>
 #include <apr_network_io.h>
+
+#include "webserver.h"
+#include "utils/logger.h"
+
 
 #define LISTEN_PORT		8081
 #define BUFSIZE			4096

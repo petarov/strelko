@@ -26,7 +26,15 @@
 #define EAD_SERVER_H_
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdint.h>
+
+typedef uint8_t		uint8;
+typedef uint32_t	uint32;
+typedef uint64_t	uint64_t;
+typedef int8_t		int8;
+typedef int32_t		int32;
+typedef int64_t		int64;
 
 #ifdef __off64_t
 typedef __off64_t off64_t;
@@ -39,11 +47,9 @@ typedef __off64_t off64_t;
 #define ASSERT(x)
 #endif
 
+#ifndef PATH_MAX
 #define PATH_MAX 256
-
-#include <apr.h>
-#include <apr_general.h>
-#include <apr_pools.h>
+#endif
 
 // Local includes
 //#include"typedefs.h"

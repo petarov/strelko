@@ -2,7 +2,7 @@
   tests.h
   This file is part of e-additives.server
 
-  Copyright (C) 2012 necroleak
+  Copyright (C) 2012 Petar Petrov
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -26,7 +26,7 @@
 #ifndef TESTS_H_
 #define TESTS_H_
 
-#include "ead_server.h"
+#include "globals.h"
 #include <stdio.h>
 #include <stdarg.h>
 

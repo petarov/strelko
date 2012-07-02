@@ -2,7 +2,7 @@
   bootstrap.c
   This file is part of e-additives.server
 
-  Copyright (C) 2012 necroleak
+  Copyright (C) 2012 Petar Petrov
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -23,7 +23,10 @@
 
 */
 
-#include "ead_server.h"
+#include <apr.h>
+#include <apr_general.h>
+
+#include "globals.h"
 #include "bootstrap.h"
 #include "utils/logger.h"
 #include "net/webserver.h"
