@@ -30,6 +30,7 @@
 #include <memory.h>
 
 #include <syslog.h>
+#include <signal.h>
 #include <sys/types.h>
 
 #include <stdint.h>

@@ -30,6 +30,33 @@
 #include "bootstrap.h"
 
 static runtime_context_t *rt_ctx;
+static int recieved_cleanup_sig = 0;
+
+/**
+ * Handles Unix signals
+ * @remark http://www.cs.utah.edu/dept/old/texinfo/glibc-manual-0.02/library_21.html
+ */
+static void sighandler(int signum) {
+
+	/* Since this handler is established for more than one kind of signal,
+	     it might still get invoked recursively by delivery of some other kind
+	     of signal.  Use a static variable to keep track of that. */
+	if (recieved_cleanup_sig)
+		raise(signum);
+	recieved_cleanup_sig = 1;
+
+    printf("Received signal %d\n", signum);
+    printf("Signal originates from process %lu\n", getpid());
+
+    bs_cleanup();
+
+    /* Now reraise the signal.  Since the signal is blocked,
+       it will receive its default handling, which is
+       to terminate the process.  We could just call
+       exit or abort, but reraising the signal
+       sets the return status from the process correctly. */
+    raise(signum);
+}
 
 
 int bs_init() {
@@ -46,8 +73,13 @@ int bs_init() {
         rv_init = E_BS_LOG_FAILED;
         goto error;
 	}
+	log_info("Bootstrap started");
 
-	log_info("Bootstrap starting ...");
+	/**
+	 * Register signal handling
+	 */
+	signal(SIGTERM, sighandler);
+	log_info("Signal handling registered.");
 
 	/**
 	 * Init Apache APR
@@ -61,11 +93,13 @@ int bs_init() {
         rv_init = E_BS_APR_FAILED;
         goto error;
     }
+    log_info("APR initialized.");
 
-    // Memory pool
+    /**
+     * Runtime context initialization
+     */
     rtc_create(&rt_ctx);
 
-	log_info("APR initialized.");
 
 error:
     return rv_init;
@@ -87,5 +121,4 @@ void bs_cleanup() {
 	log_info("Bootstrap cleanup finished.");
 	log_close();
 }
-
 
