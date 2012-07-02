@@ -26,12 +26,26 @@
 #ifndef BOOTSTRAP_H_
 #define BOOTSTRAP_H_
 
+#include <apr_pools.h>
+
+/**
+ * Error codes the bootstrap process returns
+ */
 enum bs_errors_e {
 	E_BS_OK,
 	E_BS_LOG_FAILED,
 	E_BS_APR_FAILED
 };
 typedef enum bs_errors_e bs_errors_e;
+
+/**
+ * Runtime context that encapsulates all global parameters
+ */
+struct runtime_context_t {
+	char appname[64];
+	apr_pool_t *mem_pool;
+};
+typedef struct runtime_context_t runtime_context_t;
 
 /**
  * Initialize system variables and modules

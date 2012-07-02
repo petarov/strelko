@@ -29,9 +29,9 @@
 #include <apr_strings.h>
 #include <apr_network_io.h>
 
-#include "webserver.h"
+#include "bootstrap.h"
 #include "utils/logger.h"
-
+#include "webserver.h"
 
 #define LISTEN_PORT		8081
 #define BUFSIZE			4096
@@ -40,8 +40,10 @@
 static apr_status_t do_listen(apr_socket_t **sock, apr_pool_t *mp);
 static int do_serv_task(apr_socket_t *serv_sock, apr_pool_t *mp);
 
-void ws_start(apr_pool_t *mp) {
+void ws_start(runtime_context_t *rtctx) {
 	TRACE;
+
+	apr_pool_t *mp = rtctx->mem_pool;
 
 	apr_socket_t *s;/* listening socket */
 
