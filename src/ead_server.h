@@ -27,7 +27,10 @@
 
 #include <stdio.h>
 #include <stdint.h>
+
+#ifdef __off64_t
 typedef __off64_t off64_t;
+#endif
 
 #include <assert.h>
 #ifdef DEBUG
