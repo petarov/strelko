@@ -23,6 +23,7 @@
 
 */
 
+#include "globals.h"
 #include "tests.h"
 #include "utils/logger.h"
 

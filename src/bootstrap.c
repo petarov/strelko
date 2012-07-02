@@ -23,18 +23,14 @@
 
 */
 
-#include <apr.h>
-#include <apr_general.h>
-#include <apr_pools.h>
-
 #include "globals.h"
 #include "utils/logger.h"
-#include "bootstrap.h"
+#include "cfg/rtc.h"
 #include "net/webserver.h"
+#include "bootstrap.h"
 
-static runtime_context_t *rtctx;
-static void bs_create_rt_context(runtime_context_t **rt);
-static void bs_free_rt_context(runtime_context_t **rt);
+static runtime_context_t *rt_ctx;
+
 
 int bs_init() {
 	TRACE;
@@ -67,7 +63,7 @@ int bs_init() {
     }
 
     // Memory pool
-    bs_create_rt_context(&rtctx);
+    rtc_create(&rt_ctx);
 
 	log_info("APR initialized.");
 
@@ -79,34 +75,17 @@ void bs_start() {
 	TRACE;
 
 	// Fire-up the web server
-	ws_start(rtctx);
+	ws_start(rt_ctx);
 }
 
 void bs_cleanup() {
 	TRACE;
 
-	bs_free_rt_context(&rtctx);
+	rtc_free(&rt_ctx);
 	apr_terminate();
 
 	log_info("Bootstrap cleanup finished.");
 	log_close();
 }
 
-static void bs_create_rt_context(runtime_context_t **rt) {
-	runtime_context_t *ctx = (runtime_context_t *) malloc(sizeof(runtime_context_t));
 
-	apr_pool_create(&(ctx->mem_pool), NULL);
-
-	*rt = ctx;
-}
-
-static void bs_free_rt_context(runtime_context_t **rt) {
-	runtime_context_t *ctx = *rt;
-
-	ASSERT(ctx != NULL)
-	if (ctx->mem_pool) {
-		apr_pool_destroy(ctx->mem_pool);
-	}
-
-	free(*rt);
-}

@@ -1,5 +1,5 @@
 /*
-  tests.c
+  rtc.c
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -24,11 +24,34 @@
 */
 
 #include "globals.h"
-#include "tests.h"
+#include "utils/logger.h"
+#include "rtc.h"
 
-void run_all_tests() {
+int rtc_create(runtime_context_t **rtc) {
+	TRACE;
 
-	test_logs_1();
-	test_logs_2();
+	runtime_context_t *ctx = (runtime_context_t *) malloc(sizeof(runtime_context_t));
+	ASSERT(ctx != NULL);
+	if (!ctx) {
+		log_crit("Failed to allocate memory for runtime context!");
+		return FALSE;
+	}
 
+	apr_pool_create(&(ctx->mem_pool), NULL);
+	*rtc = ctx;
+
+	return TRUE;
+}
+
+void rtc_free(runtime_context_t **rtc) {
+	TRACE;
+
+	runtime_context_t *ctx = *rtc;
+
+	ASSERT(ctx != NULL);
+	if (ctx->mem_pool) {
+		apr_pool_destroy(ctx->mem_pool);
+	}
+
+	free(ctx);
 }

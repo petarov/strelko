@@ -26,7 +26,7 @@
 #ifndef WEBSERVER_H_
 #define WEBSERVER_H_
 
-void ws_start(runtime_context_t *rtctx);
+void ws_start(runtime_context_t *rt_ctx);
 
 
 #endif /* WEBSERVER_H_ */

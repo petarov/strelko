@@ -24,7 +24,7 @@
 
 #include "globals.h"
 #include "bootstrap.h"
-#include "tests.h"
+//#include "tests.h"
 
 //#include "configuration.h"
 

@@ -23,10 +23,8 @@
 
 */
 
+#include "globals.h"
 #include "tests.h"
-
-#include <apr.h>
-#include <apr_general.h>
 
 void test_server_1() {
 

@@ -26,10 +26,6 @@
 #ifndef TESTS_H_
 #define TESTS_H_
 
-#include "globals.h"
-#include <stdio.h>
-#include <stdarg.h>
-
 // control functions
 void run_all_tests();
 

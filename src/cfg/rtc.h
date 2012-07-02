@@ -1,8 +1,8 @@
 /*
-  tests.c
+  rtc.h
   This file is part of e-additives.server
 
-  Copyright (C) 2012 Petar Petrov
+  Copyright (C) 2012 necroleak
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -23,12 +23,28 @@
 
 */
 
-#include "globals.h"
-#include "tests.h"
+#ifndef RTC_H_
+#define RTC_H_
 
-void run_all_tests() {
+/**
+ * Runtime context that encapsulates all global parameters
+ */
+struct runtime_context_t {
+	char appname[64];
+	apr_pool_t *mem_pool;
+};
+typedef struct runtime_context_t runtime_context_t;
 
-	test_logs_1();
-	test_logs_2();
+/**
+ * Allocates new runtime configuration context
+ * @param rtc Ptr to memory ptr of the runtime context
+ */
+int rtc_create(runtime_context_t **rtc);
 
-}
+/**
+ * Deallocates and cleans up existing runtime context
+ * @param rtc Ptr to memory ptr of the runtime context
+ */
+void rtc_free(runtime_context_t **rtc);
+
+#endif /* RTC_H_ */

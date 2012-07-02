@@ -28,8 +28,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>
-#include <stdint.h>
 
+#include <syslog.h>
+#include <sys/types.h>
+
+#include <stdint.h>
 typedef uint8_t		uint8;
 typedef uint32_t	uint32;
 typedef uint64_t	uint64_t;
@@ -37,9 +40,9 @@ typedef int8_t		int8;
 typedef int32_t		int32;
 typedef int64_t		int64;
 
-#ifdef __off64_t
-typedef __off64_t off64_t;
-#endif
+//#ifdef __off64_t
+//typedef __off64_t off64_t;
+//#endif
 
 #include <assert.h>
 #ifdef DEBUG
@@ -52,8 +55,12 @@ typedef __off64_t off64_t;
 #define PATH_MAX 256
 #endif
 
-// Local includes
-//#include"typedefs.h"
+#include <apr.h>
+#include <apr_general.h>
+#include <apr_pools.h>
+#include <apr_file_io.h>
+#include <apr_strings.h>
+#include <apr_network_io.h>
 
 
 #endif /* EAD_SERVER_H_ */
