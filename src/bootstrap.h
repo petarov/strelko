@@ -51,6 +51,6 @@ void bs_start();
 /**
  * Frees all resources before closing the application
  */
-void bs_cleanup();
+void bs_stop();
 
 #endif /* BOOTSTRAP_H_ */

@@ -1,7 +1,8 @@
 /*
+  config.h
   This file is part of e-additives.server
 
-  Copyright (C) 2012 Petar Petrov
+  Copyright (C) 2012 necroleak
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,19 +23,26 @@
 
 */
 
-#include "globals.h"
-#include "bootstrap.h"
-//#include "tests.h"
+#ifndef CONFIG_H_
+#define CONFIG_H_
 
-int main(int argc, char* argv[]) {
+struct config_t {
+	char srv_bind_address[16];
+	int	 srv_bind_port;
+};
+typedef struct config_t config_t;
 
-//	return run_all_tests();
+/**
+ * Initialize configuration given command line arguments
+ * @param Ptr to uninitialized config_t structure
+ * @param argc
+ * @param argv
+ */
+int cfg_create(config_t **cfg, int argc, char* argv[]);
 
-	int rv = bs_init(argc, argv);
-	if (rv == E_BS_OK) {
-		bs_start();
-		bs_stop();
-	}
+/**
+ * Clean up configuration structure and release memory
+ */
+void cfg_destroy(config_t **cfg);
 
-    return rv;
-}
+#endif /* CONFIG_H_ */

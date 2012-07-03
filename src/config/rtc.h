@@ -45,6 +45,6 @@ int rtc_create(runtime_context_t **rtc);
  * Deallocates and cleans up existing runtime context
  * @param rtc Ptr to memory ptr of the runtime context
  */
-void rtc_free(runtime_context_t **rtc);
+void rtc_destroy(runtime_context_t **rtc);
 
 #endif /* RTC_H_ */

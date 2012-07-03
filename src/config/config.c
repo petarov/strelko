@@ -1,4 +1,5 @@
 /*
+  config.c
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -23,18 +24,13 @@
 */
 
 #include "globals.h"
-#include "bootstrap.h"
-//#include "tests.h"
+#include "config.h"
 
-int main(int argc, char* argv[]) {
+int cfg_create(config_t **cfg, int argc, char* argv[]) {
+	//TODO
+	return TRUE;
+}
 
-//	return run_all_tests();
-
-	int rv = bs_init(argc, argv);
-	if (rv == E_BS_OK) {
-		bs_start();
-		bs_stop();
-	}
-
-    return rv;
+void cfg_destroy(config_t **cfg) {
+	//TODO
 }

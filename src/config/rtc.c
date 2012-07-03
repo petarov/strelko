@@ -43,7 +43,7 @@ int rtc_create(runtime_context_t **rtc) {
 	return TRUE;
 }
 
-void rtc_free(runtime_context_t **rtc) {
+void rtc_destroy(runtime_context_t **rtc) {
 	TRACE;
 
 	runtime_context_t *ctx = *rtc;

@@ -112,10 +112,10 @@ void bs_start() {
 	ws_start(rt_ctx);
 }
 
-void bs_cleanup() {
+void bs_stop() {
 	TRACE;
 
-	rtc_free(&rt_ctx);
+	rtc_destroy(&rt_ctx);
 	apr_terminate();
 
 	log_info("Bootstrap cleanup finished.");
