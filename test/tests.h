@@ -27,7 +27,7 @@
 #define TESTS_H_
 
 // control functions
-void run_all_tests();
+int run_all_tests();
 
 // server module
 void test_server_1();

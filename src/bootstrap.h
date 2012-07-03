@@ -41,7 +41,7 @@ typedef enum bs_errors_e bs_errors_e;
  * Initialize system variables and modules
  * @return Error code during initialization. E_BS_OK means all is successful.
  */
-int bs_init();
+int bs_init(int argc, char* argv[]);
 
 /**
  * Application entry point

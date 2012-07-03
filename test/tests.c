@@ -26,9 +26,10 @@
 #include "globals.h"
 #include "tests.h"
 
-void run_all_tests() {
+int run_all_tests() {
 
 	test_logs_1();
 	test_logs_2();
 
+	return 0;
 }

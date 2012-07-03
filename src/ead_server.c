@@ -26,18 +26,15 @@
 #include "bootstrap.h"
 //#include "tests.h"
 
-//#include "configuration.h"
-
 int main(int argc, char* argv[]) {
 
-//	run_all_tests();
+//	return run_all_tests();
 
-	int rv = bs_init();
-	if (rv != E_BS_OK) {
-		exit(rv);
+	int rv = bs_init(argc, argv);
+	if (rv == E_BS_OK) {
+		bs_start();
+		bs_cleanup();
 	}
-	bs_start();
-	bs_cleanup();
 
-    return 0;
+    return rv;
 }

@@ -59,7 +59,7 @@ static void sighandler(int signum) {
 }
 
 
-int bs_init() {
+int bs_init(int argc, char* argv[]) {
 	TRACE;
 
 	int rv_init = E_BS_OK;
