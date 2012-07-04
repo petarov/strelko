@@ -35,7 +35,7 @@ enum logger_output_types_e {
 typedef enum logger_output_types_e logger_output_types_e;
 
 /**
- * Initilize logging system
+ * Initialize logging system
  * @param application_name Name of application that logs the message. If NULL is passed, the executable name from
  * argv[0] will be used.
  * @param log_type Type of logging output.
@@ -60,13 +60,13 @@ void log_write(int level, char *format, ...);
 #else
 #define TRACE
 #define log_debug(...)
+#endif
 
 #define log_info(...) log_write(LOG_INFO, __VA_ARGS__)  /* informational */
 #define log_notice(...) log_write(LOG_NOTICE, __VA_ARGS__)  /* normal but significant condition */
 #define log_warn(...) log_write(LOG_WARNING, __VA_ARGS__)  /* warning conditions */
 #define log_err(...) log_write(LOG_ERR, __VA_ARGS__)  /* error conditions */
 #define log_crit(...) log_write(LOG_CRIT, __VA_ARGS__)  /* critical conditions */
-
 
 /**
  * Cleanup logging resources
