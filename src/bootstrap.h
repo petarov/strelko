@@ -37,6 +37,10 @@ enum bs_errors_e {
 typedef enum bs_errors_e bs_errors_e;
 
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Initialize system variables and modules
  * @return Error code during initialization. E_BS_OK means all is successful.
@@ -52,5 +56,9 @@ void bs_start();
  * Frees all resources before closing the application
  */
 void bs_stop();
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* BOOTSTRAP_H_ */

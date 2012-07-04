@@ -25,7 +25,7 @@
 
 #include "globals.h"
 #include "utils/logger.h"
-#include "cfg/rtc.h"
+#include "config/rtc.h"
 #include "net/webserver.h"
 #include "bootstrap.h"
 
@@ -48,7 +48,7 @@ static void sighandler(int signum) {
     printf("Received signal %d\n", signum);
     printf("Signal originates from process %lu\n", getpid());
 
-    bs_cleanup();
+    bs_stop();
 
     /* Now reraise the signal.  Since the signal is blocked,
        it will receive its default handling, which is
@@ -99,6 +99,7 @@ int bs_init(int argc, char* argv[]) {
      * Runtime context initialization
      */
     rtc_create(&rt_ctx);
+
 
 
 error:

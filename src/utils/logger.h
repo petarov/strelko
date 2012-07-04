@@ -34,6 +34,10 @@ enum logger_output_types_e {
 };
 typedef enum logger_output_types_e logger_output_types_e;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Initialize logging system
  * @param application_name Name of application that logs the message. If NULL is passed, the executable name from
@@ -73,5 +77,8 @@ void log_write(int level, char *format, ...);
  */
 void log_close();
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* LOGGER_H_ */

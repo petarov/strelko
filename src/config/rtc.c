@@ -25,6 +25,7 @@
 
 #include "globals.h"
 #include "utils/logger.h"
+#include "config.h"
 #include "rtc.h"
 
 int rtc_create(runtime_context_t **rtc) {

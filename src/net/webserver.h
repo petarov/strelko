@@ -26,7 +26,14 @@
 #ifndef WEBSERVER_H_
 #define WEBSERVER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 void ws_start(runtime_context_t *rt_ctx);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* WEBSERVER_H_ */
