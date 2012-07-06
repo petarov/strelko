@@ -24,13 +24,56 @@
 */
 
 #include "globals.h"
+#include "utils/helpers.h"
+#include "utils/logger.h"
 #include "config.h"
 
-int cfg_create(config_t **cfg, int argc, char* argv[]) {
-	//TODO
+static const config_option_t const config_options[] = {
+		{ "listen_address", CT_STRING, FALSE },
+		{ "listen_port", CT_INT, FALSE },
+		{ NULL }
+};
+
+
+int cfg_is_valid(const char *option, const char *value) {
+	TRACE;
+	ASSERT(option != NULL);
+	ASSERT(value != NULL);
+	for(const config_option_t *options = config_options; options != NULL; options++ ) {
+		if (!apr_strnatcmp(options->name, option)) {
+			// now check if the value is of the expected type
+			switch(options->type) {
+			case CT_INT:
+				return hlp_isnum(value, MAX_OPTION_VALUE_SIZE);
+				break;
+			case CT_STRING:
+				return hlp_isstr(value, MAX_OPTION_VALUE_SIZE);
+			case CT_BOOL:
+				return hlp_isbool(value);
+			default:
+				return FALSE; // we don't need any surprises
+			}
+		}
+	}
+	return FALSE;
+}
+
+int cfg_is_optional(const char* option) {
+	TRACE;
+	ASSERT(option != NULL);
+	for(const config_option_t *options = config_options; options != NULL; options++ ) {
+		if (!options->optional)
+			return FALSE;
+	}
 	return TRUE;
 }
 
-void cfg_destroy(config_t **cfg) {
-	//TODO
+const config_option_t* cfg_get_option(const char *option) {
+	TRACE;
+	ASSERT(option != NULL);
+	for(const config_option_t *options = config_options; options != NULL; options++ ) {
+		if (!apr_strnatcmp(options->name, option))
+			return options;
+	}
+	return NULL;
 }

@@ -26,23 +26,47 @@
 #ifndef CONFIG_H_
 #define CONFIG_H_
 
-struct config_t {
-	char srv_bind_address[16];
-	int	 srv_bind_port;
+/**
+ * Maximum size of any option value
+ */
+#define MAX_OPTION_VALUE_SIZE	100
+
+enum config_type_e {
+	CT_INT,
+	CT_STRING,
+	CT_BOOL
 };
-typedef struct config_t config_t;
+typedef enum config_type_e config_type_e;
+
+struct config_option_t {
+	char *name;
+	config_type_e type;
+	int optional;
+};
+typedef struct config_option_t config_option_t;
 
 /**
- * Initialize configuration given command line arguments
- * @param Ptr to uninitialized config_t structure
- * @param argc
- * @param argv
+ * Check if this option is within the list of defined. Additionally checks if the value matches
+ * the type specified in the option defition.
+ * @param option Option to look for
+ * @return Returns TRUE if the option is known and value is of the expected type, FALSE otherwise
+ * @remark Option name check is case sensitive.
  */
-int cfg_create(config_t **cfg, int argc, char* argv[]);
+int cfg_is_valid(const char *option, const char *value);
 
 /**
- * Clean up configuration structure and release memory
+ * Check if this option is optional
+ * @param option Option name
+ * @return Returns TRUE if the options is unknown or optional, FALSE otherwise
  */
-void cfg_destroy(config_t **cfg);
+int cfg_is_optional(const char* option);
+
+/**
+ * Get a structure of all option details
+ * @param option
+ * @return Const pointer to option structure
+ */
+const config_option_t* cfg_get_option(const char *option);
+
 
 #endif /* CONFIG_H_ */

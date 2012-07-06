@@ -26,6 +26,7 @@
 #include "globals.h"
 #include "utils/logger.h"
 #include "config/rtc.h"
+#include "config/rtc.h"
 #include "conf_parser.h"
 
 conf_file_t* cnfp_load(const char *filename, runtime_context_t *rtc) {

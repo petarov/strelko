@@ -40,7 +40,6 @@ void ws_start(runtime_context_t *rt_ctx) {
 	TRACE;
 
 	apr_pool_t *mp = rt_ctx->mem_pool;
-
 	apr_socket_t *s;/* listening socket */
 
 	int rv = do_listen(&s, mp);

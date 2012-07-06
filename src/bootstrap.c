@@ -37,6 +37,7 @@ static int recieved_cleanup_sig = 0;
  * @remark http://www.cs.utah.edu/dept/old/texinfo/glibc-manual-0.02/library_21.html
  */
 static void sighandler(int signum) {
+	TRACE;
 
 	/* Since this handler is established for more than one kind of signal,
 	     it might still get invoked recursively by delivery of some other kind

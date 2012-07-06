@@ -38,6 +38,7 @@ typedef struct runtime_context_t runtime_context_t;
 /**
  * Allocates new runtime configuration context
  * @param rtc Ptr to memory ptr of the runtime context
+ * @return TRUE if context was successfully created, FALSE otherwise
  */
 int rtc_create(runtime_context_t **rtc);
 
