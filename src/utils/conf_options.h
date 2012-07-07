@@ -39,7 +39,7 @@ enum config_type_e {
 typedef enum config_type_e config_type_e;
 
 struct config_option_t {
-	char *name;
+	char *key;
 	config_type_e type;
 	int optional;
 };
@@ -50,27 +50,34 @@ extern "C" {
 #endif
 
 /**
+ * Initializes configuration parameters
+ * @param configs
+ * @return Currently always returns TRUE
+ */
+int cfg_init(const config_option_t const *configs);
+
+/**
  * Check if this option is within the list of defined. Additionally checks if the value matches
  * the type specified in the option defition.
  * @param option Option to look for
  * @return Returns TRUE if the option is known and value is of the expected type, FALSE otherwise
  * @remark Option name check is case sensitive.
  */
-int cfg_is_valid(const char *option, const char *value);
+int cfg_is_valid(const char *key, const char *value);
 
 /**
  * Check if this option is optional
  * @param option Option name
  * @return Returns TRUE if the options is unknown or optional, FALSE otherwise
  */
-int cfg_is_optional(const char* option);
+int cfg_is_optional(const char* key);
 
 /**
  * Get a structure of all option details
  * @param option
  * @return Const pointer to option structure
  */
-const config_option_t* cfg_get_option(const char *option);
+const config_option_t* cfg_get_option(const char *key);
 
 #ifdef __cplusplus
 }

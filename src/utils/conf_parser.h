@@ -47,7 +47,7 @@ extern "C" {
  * @param rtc Runtime context with initialized memory pool
  * @remark Sections are not supported !
  */
-conf_file_t* conf_load(const char *filename, runtime_context_t *rtc);
+conf_file_t* conf_parse(const char *filename, runtime_context_t *rtc);
 
 #ifdef __cplusplus
 }

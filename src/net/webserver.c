@@ -26,7 +26,7 @@
 #include "globals.h"
 #include "bootstrap.h"
 #include "utils/logger.h"
-#include "config/rtc.h"
+#include "rtc.h"
 #include "webserver.h"
 
 #define LISTEN_PORT		8081

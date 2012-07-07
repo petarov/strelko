@@ -1,5 +1,5 @@
 /*
-  rtc.c
+  rtc.h
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -23,36 +23,40 @@
 
 */
 
-#include "globals.h"
-#include "utils/logger.h"
-#include "config.h"
-#include "rtc.h"
+#ifndef RTC_H_
+#define RTC_H_
 
-int rtc_create(runtime_context_t **rtc) {
-	TRACE;
+#include "utils/conf_options.h"
 
-	runtime_context_t *ctx = (runtime_context_t *) malloc(sizeof(runtime_context_t));
-	ASSERT(ctx != NULL);
-	if (!ctx) {
-		log_crit("Failed to allocate memory for runtime context!");
-		return FALSE;
-	}
+/**
+ * Runtime context that encapsulates all global parameters
+ */
+struct runtime_context_t {
+	char appname[64];
+	apr_pool_t *mem_pool;
+	const config_option_t const *cfg;
+};
+typedef struct runtime_context_t runtime_context_t;
 
-	apr_pool_create(&(ctx->mem_pool), NULL);
-	*rtc = ctx;
+#ifdef __cplusplus
+extern "C" {
+#endif
 
-	return TRUE;
+/**
+ * Allocates new runtime configuration context
+ * @param rtc Ptr to memory ptr of the runtime context
+ * @return TRUE if context was successfully created, FALSE otherwise
+ */
+int rtc_create(runtime_context_t **rtc);
+
+/**
+ * Deallocates and cleans up existing runtime context
+ * @param rtc Ptr to memory ptr of the runtime context
+ */
+void rtc_destroy(runtime_context_t **rtc);
+
+#ifdef __cplusplus
 }
+#endif
 
-void rtc_destroy(runtime_context_t **rtc) {
-	TRACE;
-
-	runtime_context_t *ctx = *rtc;
-
-	ASSERT(ctx != NULL);
-	if (ctx->mem_pool) {
-		apr_pool_destroy(ctx->mem_pool);
-	}
-
-	free(ctx);
-}
+#endif /* RTC_H_ */

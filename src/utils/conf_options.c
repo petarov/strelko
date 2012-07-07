@@ -26,21 +26,22 @@
 #include "globals.h"
 #include "utils/helpers.h"
 #include "utils/logger.h"
-#include "config.h"
+#include "conf_options.h"
 
-static const config_option_t const config_options[] = {
-		{ "listen_address", CT_STRING, FALSE },
-		{ "listen_port", CT_INT, FALSE },
-		{ NULL }
-};
+static const config_option_t const *config_options = NULL;
 
+int cfg_init(const config_option_t const *configs) {
+	ASSERT(configs != NULL);
+	config_options = configs;
+	return TRUE;
+}
 
-int cfg_is_valid(const char *option, const char *value) {
+int cfg_is_valid(const char *key, const char *value) {
 	TRACE;
-	ASSERT(option != NULL);
+	ASSERT(key != NULL);
 	ASSERT(value != NULL);
 	for(const config_option_t *options = config_options; options != NULL; options++ ) {
-		if (!apr_strnatcmp(options->name, option)) {
+		if (!apr_strnatcmp(options->key, key)) {
 			// now check if the value is of the expected type
 			switch(options->type) {
 			case CT_INT:
@@ -58,9 +59,9 @@ int cfg_is_valid(const char *option, const char *value) {
 	return FALSE;
 }
 
-int cfg_is_optional(const char* option) {
+int cfg_is_optional(const char* key) {
 	TRACE;
-	ASSERT(option != NULL);
+	ASSERT(key != NULL);
 	for(const config_option_t *options = config_options; options != NULL; options++ ) {
 		if (!options->optional)
 			return FALSE;
@@ -68,11 +69,11 @@ int cfg_is_optional(const char* option) {
 	return TRUE;
 }
 
-const config_option_t* cfg_get_option(const char *option) {
+const config_option_t* cfg_get_option(const char *key) {
 	TRACE;
-	ASSERT(option != NULL);
+	ASSERT(key != NULL);
 	for(const config_option_t *options = config_options; options != NULL; options++ ) {
-		if (!apr_strnatcmp(options->name, option))
+		if (!apr_strnatcmp(options->key, key))
 			return options;
 	}
 	return NULL;

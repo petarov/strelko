@@ -24,17 +24,35 @@
 */
 
 #include "globals.h"
-#include "utils/logger.h"
-#include "utils/helpers.h"
-#include "config/config.h"
-#include "config/rtc.h"
+#include "logger.h"
+#include "helpers.h"
+#include "conf_options.h"
+#include "rtc.h"
 #include "conf_parser.h"
 
-static int conf_is_comment(char c) {
-	return c == '#';
+#include <apr_lib.h>
+
+static int conf_iscomment(char *line) {
+	return *line == '#' || *line == '/';
 }
 
-conf_file_t* conf_load(const char *filename, runtime_context_t *rtc) {
+static int conf_isvalid(char *line) {
+	char *p = line;
+
+//	// most likely a comment ?
+//	if (*p == '#')
+//		return FALSE;
+
+	// is it in range [A-Za-z0-9_]
+	while (*p != '\0') {
+		if (!apr_isalnum(*p) && *p != '_')
+			return FALSE;
+		p++;
+	}
+	return TRUE;
+}
+
+conf_file_t* conf_parse(const char *filename, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(rtc != NULL);
 
@@ -47,15 +65,14 @@ conf_file_t* conf_load(const char *filename, runtime_context_t *rtc) {
 
 	if (rv == APR_SUCCESS) {
 		char line[CONF_MAX_LINE_SIZE];
-
 		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
 			// remove stupid white spaces :)
 			apr_collapse_spaces(line, line);
-			if (!conf_is_comment(*line)) {
+			if (!conf_iscomment(line)) {
 				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
-				if (tokens->size > 1) {
+				if (tokens->size > 1 && conf_isvalid(tokens->token[0]) ) {
 					// we found an option
-					printf("Option %s=%s\n", tokens->token[0], tokens->token[1]);
+					printf("Parsed: %s=%s\n", tokens->token[0], tokens->token[1]);
 				}
 			}
 		}
