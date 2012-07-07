@@ -72,7 +72,8 @@ conf_file_t* conf_parse(const char *filename, runtime_context_t *rtc) {
 				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
 				if (tokens->size > 1 && conf_isvalid(tokens->token[0]) ) {
 					// we found an option
-					printf("Parsed: %s=%s\n", tokens->token[0], tokens->token[1]);
+					log_debug("Parsed key=%s / value=%s", tokens->token[0], tokens->token[1]);
+					//TODO load options here
 				}
 			}
 		}

@@ -58,8 +58,9 @@ int cfg_init(const config_option_t const *configs);
 
 /**
  * Check if this option is within the list of defined. Additionally checks if the value matches
- * the type specified in the option defition.
- * @param option Option to look for
+ * the type specified in the option definition.
+ * @param key
+ * @param value
  * @return Returns TRUE if the option is known and value is of the expected type, FALSE otherwise
  * @remark Option name check is case sensitive.
  */
@@ -67,14 +68,14 @@ int cfg_is_valid(const char *key, const char *value);
 
 /**
  * Check if this option is optional
- * @param option Option name
+  * @param key
  * @return Returns TRUE if the options is unknown or optional, FALSE otherwise
  */
 int cfg_is_optional(const char* key);
 
 /**
  * Get a structure of all option details
- * @param option
+ * @param key
  * @return Const pointer to option structure
  */
 const config_option_t* cfg_get_option(const char *key);

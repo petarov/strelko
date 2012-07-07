@@ -33,7 +33,12 @@
 #define CONF_OPT_SEPARATOR	"="
 
 struct conf_file_t {
-
+	char *key;
+	union {
+		char *str_value;
+		int int_value;
+		int bool_value;
+	};
 };
 typedef struct conf_file_t conf_file_t;
 

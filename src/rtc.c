@@ -49,9 +49,8 @@ void rtc_destroy(runtime_context_t **rtc) {
 	runtime_context_t *ctx = *rtc;
 
 	ASSERT(ctx != NULL);
-	if (ctx->mem_pool) {
+	if (ctx->mem_pool)
 		apr_pool_destroy(ctx->mem_pool);
-	}
 
 	free(ctx);
 }
