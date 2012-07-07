@@ -27,6 +27,10 @@
 #include <string.h>
 #include "helpers.h"
 
+#include <apr_strings.h>
+#include <apr_lib.h>
+#include <apr_tables.h>
+
 int hlp_isnum(const char *str, int size) {
 	const char *p = str;
 	int i = size;
@@ -64,4 +68,28 @@ int hlp_isbool(const char *str) {
 //		p++;
 //	}
 //	return TRUE;
+}
+
+strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp) {
+
+	strtokens_t 		*tokens = apr_palloc(mp, sizeof(strtokens_t));
+	apr_array_header_t 	*arr 	= apr_array_make(mp, TOKEN_ARRAY_INIT_SIZE, sizeof(const char *));
+	char **state 	= NULL;
+	char *next 		= apr_strtok(str, sep, &state);
+
+	while (next != NULL ) {
+		*(char **)apr_array_push(arr) = next; // apr_pstrdup(mp, next);
+		next = apr_strtok(NULL, sep, &state);
+	}
+	// copy once again the values into strtokens_st
+	// ...hey, I know it's slow, but I don't want to deal with APR arrays :(
+	tokens->size = arr->nelts;
+	if (arr->nelts) {
+		tokens->token = (char **)apr_palloc(mp, sizeof(char **) * arr->nelts);
+		for (int i = 0; i < arr->nelts; i++) {
+			const char *s = ((const char**)arr->elts)[i];
+			tokens->token[i] = apr_pstrdup(mp, s);
+		}
+	}
+	return tokens;
 }

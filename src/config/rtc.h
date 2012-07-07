@@ -35,6 +35,10 @@ struct runtime_context_t {
 };
 typedef struct runtime_context_t runtime_context_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Allocates new runtime configuration context
  * @param rtc Ptr to memory ptr of the runtime context
@@ -47,5 +51,9 @@ int rtc_create(runtime_context_t **rtc);
  * @param rtc Ptr to memory ptr of the runtime context
  */
 void rtc_destroy(runtime_context_t **rtc);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* RTC_H_ */

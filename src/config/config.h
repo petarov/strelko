@@ -45,6 +45,10 @@ struct config_option_t {
 };
 typedef struct config_option_t config_option_t;
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Check if this option is within the list of defined. Additionally checks if the value matches
  * the type specified in the option defition.
@@ -68,5 +72,8 @@ int cfg_is_optional(const char* option);
  */
 const config_option_t* cfg_get_option(const char *option);
 
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* CONFIG_H_ */

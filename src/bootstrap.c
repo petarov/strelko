@@ -26,6 +26,7 @@
 #include "globals.h"
 #include "utils/logger.h"
 #include "config/rtc.h"
+#include "utils/conf_parser.h"
 #include "net/webserver.h"
 #include "bootstrap.h"
 
@@ -101,7 +102,10 @@ int bs_init(int argc, char* argv[]) {
      */
     rtc_create(&rt_ctx);
 
-
+    if (!conf_load("ead.conf", rt_ctx)) {
+        rv_init = E_BS_CONF_FAILED;
+        goto error;
+    }
 
 error:
     return rv_init;

@@ -27,12 +27,13 @@
 //#include "tests.h"
 
 int main(int argc, char* argv[]) {
-
-//	return run_all_tests();
-
+#if 0
+	testtokens_1();
+	exit(1);
+#endif
 	int rv = bs_init(argc, argv);
 	if (rv == E_BS_OK) {
-		bs_start();
+//		bs_start();
 		bs_stop();
 	}
 

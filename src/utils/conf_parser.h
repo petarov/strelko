@@ -26,6 +26,12 @@
 #ifndef CONF_PARSER_H_
 #define CONF_PARSER_H_
 
+/**
+ * Maximum size of a configuration line
+ */
+#define CONF_MAX_LINE_SIZE	512
+#define CONF_OPT_SEPARATOR	"="
+
 struct conf_file_t {
 
 };
@@ -41,7 +47,7 @@ extern "C" {
  * @param rtc Runtime context with initialized memory pool
  * @remark Sections are not supported !
  */
-conf_file_t* cnfp_load(const char *filename, runtime_context_t *rtc);
+conf_file_t* conf_load(const char *filename, runtime_context_t *rtc);
 
 #ifdef __cplusplus
 }

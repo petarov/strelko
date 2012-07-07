@@ -31,9 +31,11 @@
 #define PATH_MAX 256
 #endif
 
-#include <apr_strings.h>
-#include <apr_lib.h>
+#include <apr_pools.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /**
  * Check if string value consists only of numeric values
@@ -55,5 +57,31 @@ int hlp_isstr(const char *str, int size);
  * @param size
  */
 int hlp_isbool(const char *str);
+
+/**
+ * Holds string tokens created from the hlp_strsplit() function
+ */
+struct strtokens_t {
+	int size;
+	char **token;
+};
+typedef struct strtokens_t strtokens_t;
+
+#define TOKEN_ARRAY_INIT_SIZE	10
+
+/**
+ * Split a string into tokens given the selected separators
+ * @param str String to split
+ * @param sep List of separator characters (no delimiters)
+ * @param mp APR memory pool
+ * @return Returns tokens strtokens_t structure which holds the tokens and the total size of
+ * tokens found
+ * @remark If no string could not be split, the .size field will be set to 1
+ */
+strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HELPERS_H_ */

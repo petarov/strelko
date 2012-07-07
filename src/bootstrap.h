@@ -32,7 +32,8 @@
 enum bs_errors_e {
 	E_BS_OK,
 	E_BS_LOG_FAILED,
-	E_BS_APR_FAILED
+	E_BS_APR_FAILED,
+	E_BS_CONF_FAILED
 };
 typedef enum bs_errors_e bs_errors_e;
 

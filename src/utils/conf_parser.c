@@ -25,23 +25,40 @@
 
 #include "globals.h"
 #include "utils/logger.h"
-#include "config/rtc.h"
+#include "utils/helpers.h"
+#include "config/config.h"
 #include "config/rtc.h"
 #include "conf_parser.h"
 
-conf_file_t* cnfp_load(const char *filename, runtime_context_t *rtc) {
-	TRACE;
+static int conf_is_comment(char c) {
+	return c == '#';
+}
 
+conf_file_t* conf_load(const char *filename, runtime_context_t *rtc) {
+	TRACE;
 	ASSERT(rtc != NULL);
+
 	conf_file_t *cfile 		= NULL;
 	apr_file_t *apr_file 	= NULL;
 	apr_status_t rv			= APR_SUCCESS;
 
-	rv = apr_file_open(&apr_file, filename, APR_FOPEN_READ | APR_FOPEN_BUFFERED, APR_FPROT_OS_DEFAULT,
-			rtc->mem_pool);
-	if (rv == APR_SUCCESS) {
-		//TODO
+	rv = apr_file_open(&apr_file, filename, APR_FOPEN_READ | APR_FOPEN_BUFFERED,
+			APR_FPROT_OS_DEFAULT, rtc->mem_pool);
 
+	if (rv == APR_SUCCESS) {
+		char line[CONF_MAX_LINE_SIZE];
+
+		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
+			// remove stupid white spaces :)
+			apr_collapse_spaces(line, line);
+			if (!conf_is_comment(*line)) {
+				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
+				if (tokens->size > 1) {
+					// we found an option
+					printf("Option %s=%s\n", tokens->token[0], tokens->token[1]);
+				}
+			}
+		}
 		apr_file_close(apr_file);
 	} else {
 		char buf[512];

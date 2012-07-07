@@ -1,5 +1,5 @@
 /*
-  tests.h
+  testhelpers.c
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -23,20 +23,24 @@
 
 */
 
-#ifndef TESTS_H_
-#define TESTS_H_
+#include "globals.h"
+#include "utils/helpers.h"
+#include "tests.h"
 
-// control functions
-int run_all_tests();
+void testtokens_1() {
+	apr_pool_initialize();
+	apr_pool_t *mp = NULL;
+	apr_pool_create(&mp, NULL);
+	char *name = "Firstname=Middlename=Lastname Tartd";
+	printf("starting... \n");
 
-// server module
-void test_server_1();
+	strtokens_t *t = hlp_strsplit(strdup(name), ";", mp);
+	printf("size: %d\n", t->size);
+	char **p = t->token;
+	while(*p != NULL) {
+		printf("Token = %s\n", *p++);
+	}
 
-// logging module
-void test_logs_1();
-void test_logs_2();
+	apr_pool_destroy(mp);
+}
 
-// helpers
-void testtokens_1();
-
-#endif /* TESTS_H_ */
