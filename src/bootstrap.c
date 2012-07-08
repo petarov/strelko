@@ -27,7 +27,7 @@
 #include "utils/logger.h"
 #include "rtc.h"
 #include "utils/conf_parser.h"
-#include "net/webserver.h"
+#include "webserver.h"
 #include "bootstrap.h"
 
 static runtime_context_t *rt_ctx;
@@ -41,9 +41,10 @@ static const conf_optinfo_t const config_options[] = {
 
 /**
  * Handles Unix signals
+ * @param signum
  * @remark http://www.cs.utah.edu/dept/old/texinfo/glibc-manual-0.02/library_21.html
  */
-static void sighandler(int signum) {
+static void s_sighandler(int signum) {
 	TRACE;
 
 	/* Since this handler is established for more than one kind of signal,
@@ -97,17 +98,16 @@ int bs_init(int argc, char* argv[]) {
 	/**
 	 * Register signal handling
 	 */
-	signal(SIGTERM, sighandler);
+	signal(SIGTERM, s_sighandler);
 	log_info("Signal handling registered.");
 
 	/**
 	 * Init Apache APR
 	 */
-    apr_status_t rv;
-
-    rv = apr_initialize();
+    apr_status_t rv = apr_initialize();
     if (rv != APR_SUCCESS) {
         fprintf(stderr, "Could not initialize APR! (%d) \n", rv);
+        APR_ERR_PRINT(rv);
         rv_init = E_BS_APR_FAILED;
         goto error;
     }

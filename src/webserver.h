@@ -30,7 +30,11 @@
 extern "C" {
 #endif
 
-void ws_start(runtime_context_t *rt_ctx);
+/**
+ * Start http web server
+ * @param Initialized runtime context
+ */
+void ws_start(runtime_context_t *rtc);
 
 #ifdef __cplusplus
 }

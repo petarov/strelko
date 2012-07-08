@@ -33,7 +33,7 @@ int main(int argc, char* argv[]) {
 #endif
 	int rv = bs_init(argc, argv);
 	if (rv == E_BS_OK) {
-//		bs_start();
+		bs_start();
 		bs_stop();
 	}
 

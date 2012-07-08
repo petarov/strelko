@@ -36,11 +36,13 @@
 static apr_status_t do_listen(apr_socket_t **sock, apr_pool_t *mp);
 static int do_serv_task(apr_socket_t *serv_sock, apr_pool_t *mp);
 
-void ws_start(runtime_context_t *rt_ctx) {
+void ws_start(runtime_context_t *rtc) {
 	TRACE;
 
-	apr_pool_t *mp = rt_ctx->mem_pool;
-	apr_socket_t *s;/* listening socket */
+	log_info("Starting http server ...");
+
+	apr_pool_t *mp = rtc->mem_pool;
+	apr_socket_t *s;
 
 	int rv = do_listen(&s, mp);
 	if (rv != APR_SUCCESS) {

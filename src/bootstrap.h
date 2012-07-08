@@ -45,6 +45,8 @@ extern "C" {
 
 /**
  * Initialize system variables and modules
+ * @param argc Command line arguments count
+ * @param argv Command line arguments
  * @return Error code during initialization. E_BS_OK means all is successful.
  */
 int bs_init(int argc, char* argv[]);
