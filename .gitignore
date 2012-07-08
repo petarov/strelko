@@ -1,5 +1,12 @@
+# Eclipse
 .project
 .cproject
 Debug/*
 .settings/*
 
+# CMake
+CMakeCache.txt
+CMakeFiles*
+Config.h
+cmake_install*
+Makefile
