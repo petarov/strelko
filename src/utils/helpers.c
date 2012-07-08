@@ -75,6 +75,17 @@ int hlp_tobool(const char *str) {
 			!strncmp("0", str, 1)) ? FALSE : TRUE;
 }
 
+int hlp_isblank(const char *str) {
+	const char *p = str;
+
+	while(*p != '\0') {
+		if (*p != '\t' && *p != ' ' && *p != '\n' && *p != '\r')
+			return FALSE;
+		p++;
+	}
+	return TRUE;
+}
+
 strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp) {
 
 	strtokens_t 		*tokens = apr_palloc(mp, sizeof(strtokens_t));
@@ -98,3 +109,4 @@ strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp) {
 	}
 	return tokens;
 }
+

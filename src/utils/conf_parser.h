@@ -35,9 +35,9 @@
 struct conf_opt_t {
 	const char *key;
 	union {
-		char *str_value;
-		int int_value;
-		int bool_value;
+		char *str_val;
+		int int_val;
+		int bool_val;
 	};
 };
 typedef struct conf_opt_t conf_opt_t;
@@ -80,41 +80,10 @@ int conf_init(const conf_optinfo_t const *configs);
  * Load an INI style configuration file
  * @param filename Full file path to conf file
  * @param rtc Runtime context with initialized memory pool
+ * @return TRUE on success, FALSE otherwise
  * @remark Sections are not supported !
  */
-conf_opt_t* conf_parse(const char *filename, runtime_context_t *rtc);
-
-/**
- * Parse configuration option
- * @param key
- * @param value
- * @param rtc Initialized runtime context
- * @return Ptr to parsed configuration option, NULL on error
- */
-conf_opt_t* conf_opt_parse(const char *key, const char *value, runtime_context_t *rtc);
-
-/**
- * Check if this option is within the list of defined.
- * @param key
- * @param value
- * @return Returns TRUE if the option is known, FALSE otherwise
- * @remark Option name check is case sensitive.
- */
-int conf_is_opt_valid(const char *key/*, const char *value*/);
-
-/**
- * Check if this option is optional
-  * @param key
- * @return Returns TRUE if the options is unknown or optional, FALSE otherwise
- */
-int conf_is_opt_optional(const char* key);
-
-/**
- * Get a structure of all option details
- * @param key
- * @return Const pointer to option structure
- */
-//const conf_optinfo_t* conf_get_optinfo(const char *key);
+int conf_parse(const char *filename, runtime_context_t *rtc);
 
 #ifdef __cplusplus
 }

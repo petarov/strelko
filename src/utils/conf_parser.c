@@ -31,8 +31,7 @@
 
 #include <apr_lib.h>
 
-static const conf_optinfo_t const *config_options = NULL;
-
+static const conf_optinfo_t const *configs_template = NULL;
 
 static int s_iscomment(char *line) {
 	return *line == '#' || *line == '/';
@@ -54,65 +53,43 @@ static int s_isvalid(char *line) {
 	return TRUE;
 }
 
-int conf_init(const conf_optinfo_t const *configs) {
-	ASSERT(configs != NULL);
-	config_options = configs;
+/**
+ * Check if config template option is optional
+ * @param key
+ * @return Returns TRUE if the options is unknown or optional, FALSE otherwise
+ */
+int s_is_opt_optional(const char* key) {
+	TRACE;
+	ASSERT(key != NULL);
+	for(const conf_optinfo_t *options = configs_template; options->key != NULL; options++ ) {
+		if (!options->optional)
+			return FALSE;
+	}
 	return TRUE;
 }
 
-conf_opt_t* conf_parse(const char *filename, runtime_context_t *rtc) {
-	TRACE;
-	ASSERT(rtc != NULL);
+//const conf_optinfo_t* conf_get_optinfo(const char *key) {
+//	TRACE;
+//	ASSERT(key != NULL);
+//	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+//		if (!apr_strnatcmp(options->key, key))
+//			return options;
+//	}
+//	return NULL;
+//}
 
-	conf_opt_t *cfile 		= NULL;
-	apr_file_t *apr_file 	= NULL;
-	apr_status_t rv			= APR_SUCCESS;
-
-	rv = apr_file_open(&apr_file, filename, APR_FOPEN_READ | APR_FOPEN_BUFFERED,
-			APR_FPROT_OS_DEFAULT, rtc->mem_pool);
-
-	if (rv == APR_SUCCESS) {
-		char line[CONF_MAX_LINE_SIZE];
-		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
-
-			// remove stupid white spaces :)
-			apr_collapse_spaces(line, line);
-
-			if (!s_iscomment(line)) {
-				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
-				if (tokens->size > 1 && conf_is_opt_valid(tokens->token[0]) ) {
-					char *key = tokens->token[0];
-					char *value = tokens->token[1];
-
-					conf_opt_t *opt = conf_opt_parse(key, value, rtc);
-					if (opt != NULL) {
-						log_info("Parsed option (%s)", key);
-					} else {
-						log_err("Failed to parse option (%s) !", key);
-						//TODO err
-
-					}
-				} else {
-					log_err("Invalid option line (%s) !", line);
-					//TODO err
-				}
-			}
-		}
-		apr_file_close(apr_file);
-	} else {
-		char buf[512];
-		apr_strerror(rv, buf, sizeof(buf));
-		log_err("Failed to load %s conf file! Error: %s", filename, buf);
-	}
-
-	return cfile;
-}
-
-conf_opt_t* conf_opt_parse(const char *key, const char *value, runtime_context_t *rtc) {
+/**
+ * Parse configuration option
+ * @param key
+ * @param value
+ * @param rtc Initialized runtime context
+ * @return Ptr to parsed configuration option, NULL on error
+ */
+conf_opt_t* s_opt_parse(const char *key, const char *value, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(key != NULL);
 	ASSERT(value != NULL);
-	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+	for(const conf_optinfo_t *options = configs_template; options->key != NULL; options++ ) {
 		if (!apr_strnatcmp(options->key, key)) {
 			conf_opt_t *opt = NULL;
 
@@ -122,21 +99,21 @@ conf_opt_t* conf_opt_parse(const char *key, const char *value, runtime_context_t
 				if (hlp_isnum(value, MAX_OPTION_VALUE_SIZE)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->int_value = strtol(value, (char **)NULL, 10);
+					opt->int_val = strtol(value, (char **)NULL, 10);
 				}
 				break;
 			case CT_STRING:
 				if (hlp_isstr(value, MAX_OPTION_VALUE_SIZE)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->str_value = apr_pstrdup(rtc->mem_pool, value);
+					opt->str_val = apr_pstrdup(rtc->mem_pool, value);
 				}
 				break;
 			case CT_BOOL:
 				if (hlp_isbool(value)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->bool_value = hlp_tobool(value);
+					opt->bool_val = hlp_tobool(value);
 				}
 				break;
 			}
@@ -147,7 +124,14 @@ conf_opt_t* conf_opt_parse(const char *key, const char *value, runtime_context_t
 	return NULL;
 }
 
-int conf_is_opt_valid(const char *key/*, const char *value*/) {
+/**
+ * Check if this option is within the list of defined.
+ * @param key
+ * @param value
+ * @return Returns TRUE if the option is known, FALSE otherwise
+ * @remark Option name check is case sensitive.
+ */
+int s_is_opt_valid(const char *key/*, const char *value*/) {
 	TRACE;
 	ASSERT(key != NULL);
 //	ASSERT(value != NULL);
@@ -155,7 +139,7 @@ int conf_is_opt_valid(const char *key/*, const char *value*/) {
 	if (!s_isvalid(key))
 		return FALSE;
 
-	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+	for(const conf_optinfo_t *options = configs_template; options->key != NULL; options++ ) {
 		if (!apr_strnatcmp(options->key, key)) {
 			return TRUE;
 //			// now check if the value is of the expected type
@@ -175,24 +159,62 @@ int conf_is_opt_valid(const char *key/*, const char *value*/) {
 	return FALSE;
 }
 
-int conf_is_opt_optional(const char* key) {
-	TRACE;
-	ASSERT(key != NULL);
-	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
-		if (!options->optional)
-			return FALSE;
-	}
+
+int conf_init(const conf_optinfo_t const *configs) {
+	ASSERT(configs != NULL);
+	configs_template = configs;
 	return TRUE;
 }
 
-//const conf_optinfo_t* conf_get_optinfo(const char *key) {
-//	TRACE;
-//	ASSERT(key != NULL);
-//	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
-//		if (!apr_strnatcmp(options->key, key))
-//			return options;
-//	}
-//	return NULL;
-//}
+int conf_parse(const char *filename, runtime_context_t *rtc) {
+	TRACE;
+	ASSERT(rtc != NULL);
+	apr_file_t *apr_file 	= NULL;
+	int	success				= FALSE;
 
+	apr_status_t rv = apr_file_open(&apr_file, filename, APR_FOPEN_READ | APR_FOPEN_BUFFERED,
+			APR_FPROT_OS_DEFAULT, rtc->mem_pool);
+	if (rv == APR_SUCCESS) {
+		char line[CONF_MAX_LINE_SIZE];
+		rtc->options = apr_hash_make(rtc->mem_pool);
+		success = TRUE;
 
+		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
+
+			if (hlp_isblank(line))
+				continue;
+
+			// remove stupid white spaces :)
+			apr_collapse_spaces(line, line);
+
+			if (!s_iscomment(line)) {
+				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
+				if (tokens->size > 1 && s_is_opt_valid(tokens->token[0]) ) {
+
+					char *key = tokens->token[0];
+					char *value = tokens->token[1];
+					conf_opt_t *opt = s_opt_parse(key, value, rtc);
+
+					if (opt != NULL) {
+						log_debug("Parsed option (%s).", key);
+						apr_hash_set(rtc->options, key, APR_HASH_KEY_STRING, opt);
+					} else {
+						log_err("Failed to parse option (%s) !", key);
+						success = FALSE;
+						break;
+					}
+				} else {
+					log_err("Invalid option line (%s) !", line);
+					success = FALSE;
+					break;
+				}
+			}
+		}
+		apr_file_close(apr_file);
+	} else {
+		log_err("Failed to load conf file - %s!", filename);
+		APR_ERR_PRINT(rv);
+	}
+
+	return success;
+}

@@ -66,6 +66,12 @@ int hlp_isbool(const char *str);
 int hlp_tobool(const char *str);
 
 /**
+ * Check if line is blank
+ * @param str
+ */
+int hlp_isblank(const char *str);
+
+/**
  * Holds string tokens created from the hlp_strsplit() function
  */
 struct strtokens_t {

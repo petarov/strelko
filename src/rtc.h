@@ -26,12 +26,15 @@
 #ifndef RTC_H_
 #define RTC_H_
 
+#include <apr_hash.h>
+
 /**
  * Runtime context that encapsulates all global parameters
  */
 struct runtime_context_t {
 	char appname[64];
 	apr_pool_t *mem_pool;
+	apr_hash_t *options;
 };
 typedef struct runtime_context_t runtime_context_t;
 
