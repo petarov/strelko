@@ -63,5 +63,8 @@ typedef int64_t		int64;
 #include <apr_strings.h>
 #include <apr_network_io.h>
 
+#define APR_ERR_PRINT(rv) { char buf[512]; apr_strerror(rv, buf, sizeof(buf)); \
+	log_err("APR ERROR: %s", buf); \
+}
 
 #endif /* EAD_SERVER_H_ */

@@ -218,3 +218,9 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 
 	return success;
 }
+
+const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc) {
+	conf_opt_t *opt = apr_hash_get(rtc->options, key, APR_HASH_KEY_STRING);
+	ASSERT(opt != NULL);
+	return opt;
+}

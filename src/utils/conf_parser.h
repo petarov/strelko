@@ -2,7 +2,7 @@
   conf_parser.h
   This file is part of e-additives.server
 
-  Copyright (C) 2012 necroleak
+  Copyright (C) 2012 Petar Petrov
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -70,8 +70,8 @@ extern "C" {
 #endif
 
 /**
- * Initializes configuration parameters
- * @param configs
+ * Initializes configuration parameters.
+ * @param Configuration template of what options are expected to be loaded
  * @return Currently always returns TRUE
  */
 int conf_init(const conf_optinfo_t const *configs);
@@ -84,6 +84,14 @@ int conf_init(const conf_optinfo_t const *configs);
  * @remark Sections are not supported !
  */
 int conf_parse(const char *filename, runtime_context_t *rtc);
+
+/**
+ * Get parsed option
+ * @param key Option name
+ * @param rtc Initialized runtime context
+ * @return Ptr to loaded conf_opt_t structure if key was found, NULL otherwise
+ */
+const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc);
 
 #ifdef __cplusplus
 }

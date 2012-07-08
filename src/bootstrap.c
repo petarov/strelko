@@ -71,12 +71,23 @@ int bs_init(int argc, char* argv[]) {
 	TRACE;
 
 	int rv_init = E_BS_OK;
+	char *config_filepath = NULL;
+
+	/**
+	 * Check command line
+	 */
+	if (argc < 2) {
+		fprintf(stderr, "Missing configuration file command line param!\n");
+		rv_init = E_BS_CMD_FAILED;
+		goto error;
+	} else {
+		config_filepath = argv[1];
+	}
 
 	/*
 	 * Init logging system
 	 */
 	if (log_init(NULL)) {
-    	ASSERT(0);
         fprintf(stderr, "Could not initialize logging system!\n");
         rv_init = E_BS_LOG_FAILED;
         goto error;
@@ -96,7 +107,6 @@ int bs_init(int argc, char* argv[]) {
 
     rv = apr_initialize();
     if (rv != APR_SUCCESS) {
-    	ASSERT(0);
         fprintf(stderr, "Could not initialize APR! (%d) \n", rv);
         rv_init = E_BS_APR_FAILED;
         goto error;
@@ -104,12 +114,11 @@ int bs_init(int argc, char* argv[]) {
     log_info("APR initialized.");
 
     /**
-     * Runtime context initialization
+     * Initialize runtime context and load conf options
      */
     rtc_create(&rt_ctx);
-
     conf_init(config_options);
-    if (!conf_parse("ead.conf", rt_ctx)) {
+    if (!conf_parse(config_filepath, rt_ctx)) {
         rv_init = E_BS_CONF_FAILED;
         goto error;
     }
