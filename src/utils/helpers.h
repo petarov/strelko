@@ -59,6 +59,13 @@ int hlp_isstr(const char *str, int size);
 int hlp_isbool(const char *str);
 
 /**
+ * Convert string to boolean value
+ * @param str String must be one of the following: TRUE, true, FALSE, false, 1 or 0
+ * @Return 0 if string is FALSE, false or 0, otherwise returns 1
+ */
+int hlp_tobool(const char *str);
+
+/**
  * Holds string tokens created from the hlp_strsplit() function
  */
 struct strtokens_t {

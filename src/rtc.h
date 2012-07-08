@@ -26,15 +26,12 @@
 #ifndef RTC_H_
 #define RTC_H_
 
-#include "utils/conf_options.h"
-
 /**
  * Runtime context that encapsulates all global parameters
  */
 struct runtime_context_t {
 	char appname[64];
 	apr_pool_t *mem_pool;
-	const config_option_t const *cfg;
 };
 typedef struct runtime_context_t runtime_context_t;
 

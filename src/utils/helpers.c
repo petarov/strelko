@@ -70,6 +70,11 @@ int hlp_isbool(const char *str) {
 //	return TRUE;
 }
 
+int hlp_tobool(const char *str) {
+	return (!strncmp("false", str, 5) || !strncmp("FALSE", str, 5) ||
+			!strncmp("0", str, 1)) ? FALSE : TRUE;
+}
+
 strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp) {
 
 	strtokens_t 		*tokens = apr_palloc(mp, sizeof(strtokens_t));

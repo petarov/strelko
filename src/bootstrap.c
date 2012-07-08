@@ -25,7 +25,6 @@
 
 #include "globals.h"
 #include "utils/logger.h"
-#include "utils/conf_options.h"
 #include "rtc.h"
 #include "utils/conf_parser.h"
 #include "net/webserver.h"
@@ -34,7 +33,7 @@
 static runtime_context_t *rt_ctx;
 static int recieved_cleanup_sig = 0;
 
-static const config_option_t const config_options[] = {
+static const conf_optinfo_t const config_options[] = {
 		{ "listen_address", CT_STRING, FALSE },
 		{ "listen_port", CT_INT, FALSE },
 		{ NULL }
@@ -108,8 +107,8 @@ int bs_init(int argc, char* argv[]) {
      * Runtime context initialization
      */
     rtc_create(&rt_ctx);
-    rt_ctx->cfg = config_options;
 
+    conf_init(config_options);
     if (!conf_parse("ead.conf", rt_ctx)) {
         rv_init = E_BS_CONF_FAILED;
         goto error;

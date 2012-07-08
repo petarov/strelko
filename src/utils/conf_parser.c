@@ -26,17 +26,19 @@
 #include "globals.h"
 #include "logger.h"
 #include "helpers.h"
-#include "conf_options.h"
 #include "rtc.h"
 #include "conf_parser.h"
 
 #include <apr_lib.h>
 
-static int conf_iscomment(char *line) {
+static const conf_optinfo_t const *config_options = NULL;
+
+
+static int s_iscomment(char *line) {
 	return *line == '#' || *line == '/';
 }
 
-static int conf_isvalid(char *line) {
+static int s_isvalid(char *line) {
 	char *p = line;
 
 //	// most likely a comment ?
@@ -52,11 +54,17 @@ static int conf_isvalid(char *line) {
 	return TRUE;
 }
 
-conf_file_t* conf_parse(const char *filename, runtime_context_t *rtc) {
+int conf_init(const conf_optinfo_t const *configs) {
+	ASSERT(configs != NULL);
+	config_options = configs;
+	return TRUE;
+}
+
+conf_opt_t* conf_parse(const char *filename, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(rtc != NULL);
 
-	conf_file_t *cfile 		= NULL;
+	conf_opt_t *cfile 		= NULL;
 	apr_file_t *apr_file 	= NULL;
 	apr_status_t rv			= APR_SUCCESS;
 
@@ -66,14 +74,27 @@ conf_file_t* conf_parse(const char *filename, runtime_context_t *rtc) {
 	if (rv == APR_SUCCESS) {
 		char line[CONF_MAX_LINE_SIZE];
 		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
+
 			// remove stupid white spaces :)
 			apr_collapse_spaces(line, line);
-			if (!conf_iscomment(line)) {
+
+			if (!s_iscomment(line)) {
 				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
-				if (tokens->size > 1 && conf_isvalid(tokens->token[0]) ) {
-					// we found an option
-					log_debug("Parsed key=%s / value=%s", tokens->token[0], tokens->token[1]);
-					//TODO load options here
+				if (tokens->size > 1 && conf_is_opt_valid(tokens->token[0]) ) {
+					char *key = tokens->token[0];
+					char *value = tokens->token[1];
+
+					conf_opt_t *opt = conf_opt_parse(key, value, rtc);
+					if (opt != NULL) {
+						log_info("Parsed option (%s)", key);
+					} else {
+						log_err("Failed to parse option (%s) !", key);
+						//TODO err
+
+					}
+				} else {
+					log_err("Invalid option line (%s) !", line);
+					//TODO err
 				}
 			}
 		}
@@ -86,4 +107,92 @@ conf_file_t* conf_parse(const char *filename, runtime_context_t *rtc) {
 
 	return cfile;
 }
+
+conf_opt_t* conf_opt_parse(const char *key, const char *value, runtime_context_t *rtc) {
+	TRACE;
+	ASSERT(key != NULL);
+	ASSERT(value != NULL);
+	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+		if (!apr_strnatcmp(options->key, key)) {
+			conf_opt_t *opt = NULL;
+
+			// now check if the value is of the expected type
+			switch(options->type) {
+			case CT_INT:
+				if (hlp_isnum(value, MAX_OPTION_VALUE_SIZE)) {
+					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+					opt->key = key;
+					opt->int_value = strtol(value, (char **)NULL, 10);
+				}
+				break;
+			case CT_STRING:
+				if (hlp_isstr(value, MAX_OPTION_VALUE_SIZE)) {
+					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+					opt->key = key;
+					opt->str_value = apr_pstrdup(rtc->mem_pool, value);
+				}
+				break;
+			case CT_BOOL:
+				if (hlp_isbool(value)) {
+					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+					opt->key = key;
+					opt->bool_value = hlp_tobool(value);
+				}
+				break;
+			}
+			return opt;
+		}
+	}
+	// unknown option
+	return NULL;
+}
+
+int conf_is_opt_valid(const char *key/*, const char *value*/) {
+	TRACE;
+	ASSERT(key != NULL);
+//	ASSERT(value != NULL);
+
+	if (!s_isvalid(key))
+		return FALSE;
+
+	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+		if (!apr_strnatcmp(options->key, key)) {
+			return TRUE;
+//			// now check if the value is of the expected type
+//			switch(options->type) {
+//			case CT_INT:
+//				return hlp_isnum(value, MAX_OPTION_VALUE_SIZE);
+//				break;
+//			case CT_STRING:
+//				return hlp_isstr(value, MAX_OPTION_VALUE_SIZE);
+//			case CT_BOOL:
+//				return hlp_isbool(value);
+//			default:
+//				return FALSE; // we don't need any surprises
+//			}
+		}
+	}
+	return FALSE;
+}
+
+int conf_is_opt_optional(const char* key) {
+	TRACE;
+	ASSERT(key != NULL);
+	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+		if (!options->optional)
+			return FALSE;
+	}
+	return TRUE;
+}
+
+//const conf_optinfo_t* conf_get_optinfo(const char *key) {
+//	TRACE;
+//	ASSERT(key != NULL);
+//	for(const conf_optinfo_t *options = config_options; options->key != NULL; options++ ) {
+//		if (!apr_strnatcmp(options->key, key))
+//			return options;
+//	}
+//	return NULL;
+//}
+
 
