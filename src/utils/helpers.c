@@ -90,7 +90,7 @@ strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp) {
 
 	strtokens_t 		*tokens = apr_palloc(mp, sizeof(strtokens_t));
 	apr_array_header_t 	*arr 	= apr_array_make(mp, TOKEN_ARRAY_INIT_SIZE, sizeof(const char *));
-	char **state 	= NULL;
+	char *state 	= NULL;
 	char *next 		= apr_strtok(str, sep, &state);
 
 	while (next != NULL ) {

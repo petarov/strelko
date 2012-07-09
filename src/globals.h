@@ -31,6 +31,7 @@
 
 #include <syslog.h>
 #include <signal.h>
+#include <sys/stat.h>
 #include <sys/types.h>
 
 #include <stdint.h>

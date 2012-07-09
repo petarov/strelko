@@ -10,3 +10,7 @@ CMakeFiles*
 Config.h
 cmake_install*
 Makefile
+build/
+
+# App
+ead.conf

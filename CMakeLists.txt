@@ -16,23 +16,20 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-### E-Additives Server
-### CMAKE file
-###
-#################################################
-set(HS_DEBUG ON)
+cmake_minimum_required (VERSION 2.6)
+project(ead_server)
 
-macro(HS_DEBUG_MESSAGE _message)
-  if (HS_DEBUG)
+set(APP_DEBUG ON)
+
+### Misc macros
+macro(APP_DEBUG_MESSAGE _message)
+  if (APP_DEBUG)
     message(STATUS "(DEBUG) ${_message}")
-  endif (HS_DEBUG)
-endmacro(HS_DEBUG_MESSAGE _message)
+  endif (APP_DEBUG)
+endmacro(APP_DEBUG_MESSAGE _message)
 
-cmake_minimum_required (VERSION 2.8)
-project(ead-server) 
-
-###
-hs_debug_message("Build type is ${CMAKE_BUILD_TYPE}" )
+### Setup #################################################################
+APP_DEBUG_MESSAGE("Build type is ${CMAKE_BUILD_TYPE}" )
 
 ### src
 include_directories(src/)
@@ -47,20 +44,18 @@ set (VERSION_MIN 0)
 # PThread
 #find_package(pthread REQUIRED)
 
-# Log4Cxx
-set( LOG4_LIB_NAME "liblog4cxx.so" )
+# APR lib
+set( APR_LIB_NAME "libapr-1.so" )
 find_library( 
-    LOG4_LIBRARY
-    NAMES ${LOG4_LIB_NAME}
+    APR_LIBRARY
+    NAMES ${APR_LIB_NAME}
     PATHS "/usr/lib/" "/usr/local/lib/"
 )
-if ( NOT LOG4_LIBRARY )
-      message( FATAL_ERROR "Log4Cpp lib (${LOG4_LIB_NAME}) not found!" )
-endif ( NOT LOG4_LIBRARY )
+if ( NOT APR_LIBRARY )
+      message( FATAL_ERROR "APR library (${APR_LIB_NAME}) not found!" )
+endif ( NOT APR_LIBRARY )
 
-## flags
-add_definitions(-DLINUX_BUILD)
-
+### Debug or Release build
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-g)
     add_definitions(-Wall)
@@ -71,6 +66,8 @@ else (CMAKE_BUILD_TYPE STREQUAL "Debug")
 endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
 
 if (UNIX AND NOT WIN32)
+    add_definitions(-DLINUX_BUILD)
+    
     if (CMAKE_SIZEOF_VOID_P MATCHES "8")
     	set(CPU_ARCH 64)
 		add_definitions(-DARCH_X64)
@@ -80,6 +77,12 @@ if (UNIX AND NOT WIN32)
     endif (CMAKE_SIZEOF_VOID_P MATCHES "8")
 endif (UNIX AND NOT WIN32)
 
+add_definitions(-D_LARGEFILE_SOURCE=1)
+add_definitions(-D_LARGEFILE64_SOURCE)
+add_definitions(-D_FILE_OFFSET_BITS=64)
+
+# We compile in C99 mode
+add_definitions(-std=c99)
 
 ### configure a header file to pass some of the CMake settings to the source code
 configure_file (
@@ -88,7 +91,35 @@ configure_file (
   )
 
 ### build subdirs
-add_subdirectory(src)
+#add_subdirectory(src)
+APP_DEBUG_MESSAGE("Building src/ ..." )
 
-### set runtime directory
-#set(savagewheels PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./")
+include_directories(/src)
+include_directories(/usr/include/apr-1)
+
+set( 
+    SOURCES 
+    src/ead_server.c
+    src/bootstrap.c
+    src/rtc.c
+    src/webserver.c
+    src/utils/conf_parser.c
+    src/utils/helpers.c
+    src/utils/logger.c
+)
+
+APP_DEBUG_MESSAGE("src/ Sources: ${SOURCES}")
+
+### Build #################################################################
+add_executable (	
+	ead_server
+	${SOURCES}
+)
+
+target_link_libraries(ead_server ${APR_LIB_NAME})
+
+### prepare build
+set_target_properties(ead_server PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
+
+file(COPY "ead.conf.dist" DESTINATION "./build")
+file(RENAME "./build/ead.conf.dist" "./build/ead.conf")
