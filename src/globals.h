@@ -68,6 +68,7 @@ typedef int64_t		int64;
 }
 
 #include "status_codes.h"
-
+#include "confs.h"
+#include "rtc.h"
 
 #endif /* EAD_SERVER_H_ */
