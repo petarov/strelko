@@ -45,9 +45,9 @@ extern "C" {
 /**
  * Allocates new runtime configuration context
  * @param rtc Ptr to memory ptr of the runtime context
- * @return TRUE if context was successfully created, FALSE otherwise
+ * @return SC_OK if context was successfully created, SC_FAILED otherwise
  */
-int rtc_create(runtime_context_t **rtc);
+status_code_t rtc_create(runtime_context_t **rtc);
 
 /**
  * Deallocates and cleans up existing runtime context

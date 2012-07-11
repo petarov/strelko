@@ -27,30 +27,31 @@
 #include "utils/logger.h"
 #include "rtc.h"
 
-int rtc_create(runtime_context_t **rtc) {
+status_code_t rtc_create(runtime_context_t **rtc) {
 	TRACE;
 
-	runtime_context_t *ctx = (runtime_context_t *) malloc(sizeof(runtime_context_t));
-	ASSERT(ctx != NULL);
-	if (!ctx) {
+	runtime_context_t *runtime = (runtime_context_t *) malloc(sizeof(runtime_context_t));
+	ASSERT(runtime != NULL);
+	if (!runtime) {
 		log_crit("Failed to allocate memory for runtime context!");
-		return FALSE;
+		return SC_FAILED;
 	}
 
-	apr_pool_create(&(ctx->mem_pool), NULL);
-	*rtc = ctx;
+	memset(runtime, 0, sizeof(runtime_context_t));
+	apr_pool_create(&(runtime->mem_pool), NULL);
 
-	return TRUE;
+	*rtc = runtime;
+
+	return SC_OK;
 }
 
 void rtc_destroy(runtime_context_t **rtc) {
 	TRACE;
 
-	runtime_context_t *ctx = *rtc;
+	runtime_context_t *runtime = *rtc;
+	ASSERT(runtime != NULL);
+	if (runtime->mem_pool)
+		apr_pool_destroy(runtime->mem_pool);
 
-	ASSERT(ctx != NULL);
-	if (ctx->mem_pool)
-		apr_pool_destroy(ctx->mem_pool);
-
-	free(ctx);
+	free(runtime);
 }

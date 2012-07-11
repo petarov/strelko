@@ -30,11 +30,34 @@
 extern "C" {
 #endif
 
+struct web_server_t {
+	char *hostname;
+	int port;
+	apr_socket_t *sock;
+	int is_running;
+};
+typedef struct web_server_t web_server_t;
+
 /**
- * Start http web server
- * @param Initialized runtime context
+ * Creates a webserver configuration instance
+ * @param ws Non-initialized web_server_t structure
+ * @param rtc Initialized runtime context
  */
-void ws_start(runtime_context_t *rtc);
+status_code_t websrv_create(web_server_t **ws, runtime_context_t *rtc);
+
+/**
+ * Create web server listening socket and start listening for client connections
+ * @param ws Initialized web_server context
+ * @param rtc Initialized runtime context
+ */
+status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc);
+
+/**
+ * Set server shutdown flag
+ * @param Initialized web_server context. The server must already have been started
+ * with websrv_start()
+ */
+void websrv_stop(web_server_t *ws);
 
 #ifdef __cplusplus
 }

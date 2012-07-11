@@ -25,20 +25,20 @@
 
 #include "globals.h"
 #include "utils/logger.h"
-#include "rtc.h"
 #include "utils/conf_parser.h"
 #include "webserver.h"
 #include "signals.h"
 #include "bootstrap.h"
 
-static runtime_context_t *rt_ctx;
+static runtime_context_t *rtctx;
 static const conf_optinfo_t const config_options[] = {
 		{ "listen_address", CT_STRING, FALSE },
 		{ "listen_port", CT_INT, FALSE },
 		{ NULL }
 };
+static web_server_t *websrv = NULL;
 
-int bs_init(int argc, char* argv[]) {
+status_code_t bs_init(int argc, char* argv[]) {
 	TRACE;
 
 	int exit_code = SC_OK;
@@ -86,9 +86,9 @@ int bs_init(int argc, char* argv[]) {
     /**
      * Initialize runtime context and load conf options
      */
-    rtc_create(&rt_ctx);
+    rtc_create(&rtctx);
     conf_init(config_options);
-    if (!conf_parse(config_filepath, rt_ctx)) {
+    if (!conf_parse(config_filepath, rtctx)) {
         exit_code = SC_BS_ERR_CONF;
         goto error;
     }
@@ -101,13 +101,16 @@ void bs_start() {
 	TRACE;
 
 	// Fire-up the web server
-	ws_start(rt_ctx);
+	websrv_create(&websrv, rtctx);
+	websrv_start(websrv, rtctx);
 }
 
 void bs_stop() {
 	TRACE;
 
-	rtc_destroy(&rt_ctx);
+	websrv_stop(websrv);
+
+	rtc_destroy(&rtctx);
 	apr_terminate();
 
 	log_info("Bootstrap cleanup finished.");

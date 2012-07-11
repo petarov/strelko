@@ -24,93 +24,51 @@
 */
 
 #include "globals.h"
-#include "bootstrap.h"
 #include "utils/logger.h"
-#include "rtc.h"
+#include "utils/conf_parser.h"
 #include "webserver.h"
 
-#define LISTEN_PORT		8081
 #define BUFSIZE			4096
 #define CRLF_STR		"\r\n"
 
-static apr_status_t do_listen(apr_socket_t **sock, apr_pool_t *mp);
-static int do_serv_task(apr_socket_t *serv_sock, apr_pool_t *mp);
-
-void ws_start(runtime_context_t *rtc) {
+static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
 	TRACE;
 
-	log_info("Starting http server ...");
-
-	apr_pool_t *mp = rtc->mem_pool;
-	apr_socket_t *s;
-
-	int rv = do_listen(&s, mp);
-	if (rv != APR_SUCCESS) {
-		goto error;
-	}
-
-	while (1) {
-		apr_socket_t *ns;
-
-		rv = apr_socket_accept(&ns, s, mp);
-		if (rv != APR_SUCCESS) {
-			goto error;
-		}
-
-		/* it is a good idea to specify socket options for the newly accepted socket explicitly */
-		apr_socket_opt_set(ns, APR_SO_NONBLOCK, 0);
-		apr_socket_timeout_set(ns, -1);
-
-		if (!do_serv_task(ns, mp)) {
-			goto error;
-		}
-		apr_socket_close(ns);
-	}
-
-error:
-	return;
-}
-
-/**
- * Create a listening socket, and listen it.
- */
-static apr_status_t do_listen(apr_socket_t **sock, apr_pool_t *mp)
-{
-    apr_status_t rv;
+	apr_status_t rv;
     apr_socket_t *s;
     apr_sockaddr_t *sa;
 
-    rv = apr_sockaddr_info_get(&sa, NULL, APR_INET, LISTEN_PORT, 0, mp);
-    if (rv != APR_SUCCESS) {
-        return rv;
-    }
+    log_debug("Starting http server on %s:%d", ws->hostname, ws->port);
 
-    rv = apr_socket_create(&s, sa->family, SOCK_STREAM, APR_PROTO_TCP, mp);
-    if (rv != APR_SUCCESS) {
-        return rv;
-    }
+    if (APR_SUCCESS != (rv = apr_sockaddr_info_get(&sa, NULL, APR_INET, ws->port, 0, mp)))
+    	goto error;
+
+    if (APR_SUCCESS != (rv = apr_socket_create(&s, sa->family, SOCK_STREAM, APR_PROTO_TCP, mp)))
+    	goto error;
 
     /* it is a good idea to specify socket options explicitly.
-     * in this case, we make a blocking socket as the listening socket */
+     * in this case, we make a blocking socket as the listening socket
+     */
     apr_socket_opt_set(s, APR_SO_NONBLOCK, 0);
     apr_socket_timeout_set(s, -1);
-    apr_socket_opt_set(s, APR_SO_REUSEADDR, 1);/* this is useful for a server(socket listening) process */
+    apr_socket_opt_set(s, APR_SO_REUSEADDR, 1);
 
-    rv = apr_socket_bind(s, sa);
-    if (rv != APR_SUCCESS) {
-        return rv;
-    }
-    rv = apr_socket_listen(s, SOMAXCONN);
-    if (rv != APR_SUCCESS) {
-        return rv;
-    }
+    if (APR_SUCCESS != (rv = apr_socket_bind(s, sa)))
+    	goto error;
 
-    *sock = s;
+    if (APR_SUCCESS != (rv = apr_socket_listen(s, SOMAXCONN)))
+    	goto error;
+
+    // assign the created socket
+    ws->sock = s;
+
+error:
     return rv;
 }
 
-static int do_serv_task(apr_socket_t *sock, apr_pool_t *mp)
-{
+static int do_serv_task(apr_socket_t *sock, apr_pool_t *mp) {
+	TRACE;
+
     int is_firstline = TRUE;
     const char *filepath = NULL;
 
@@ -169,4 +127,61 @@ static int do_serv_task(apr_socket_t *sock, apr_pool_t *mp)
         apr_socket_send(sock, resp_hdr, &len);
         return TRUE;
     }
+}
+
+status_code_t websrv_create(web_server_t **ws, runtime_context_t *rtc) {
+	TRACE;
+
+	web_server_t *websrv = (web_server_t *)apr_palloc(rtc->mem_pool, sizeof(web_server_t));
+	websrv->hostname = apr_pstrdup(rtc->mem_pool, CF_STR(CF_LISTEN_ADDRESS));
+	websrv->port = CF_INT(CF_LISTEN_PORT);
+
+	*ws = websrv;
+
+	return SC_OK;
+}
+
+status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc) {
+	TRACE;
+	ASSERT(ws != NULL);
+
+	apr_pool_t *mp 	= rtc->mem_pool;
+	apr_status_t rv = APR_SUCCESS;
+
+	// start listening on host:port
+	if (APR_SUCCESS != (rv = s_listen(ws, mp)))
+		return SC_WS_LISTEN_FAILED;
+
+	ws->is_running = TRUE;
+
+	while (ws->is_running) {
+		apr_socket_t *client_sock;
+
+		rv = apr_socket_accept(&client_sock, ws->sock, mp);
+		if (rv != APR_SUCCESS) {
+			// just notify
+			log_err("Client socket failed !");
+//			goto error;
+		}
+
+		// specify client socket options
+		apr_socket_opt_set(client_sock, APR_SO_NONBLOCK, 0);
+		apr_socket_timeout_set(client_sock, -1);
+
+		if (!do_serv_task(client_sock, mp)) {
+			log_err("Failed to serve client!");
+			//goto error;
+		}
+		apr_socket_close(client_sock);
+	}
+
+	return SC_OK;
+}
+
+void websrv_stop(web_server_t *ws) {
+	TRACE;
+	ASSERT(ws != NULL);
+
+	log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
+	ws->is_running = FALSE;
 }

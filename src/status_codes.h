@@ -26,18 +26,22 @@
 #ifndef EXIT_CODES_H_
 #define EXIT_CODES_H_
 
-enum status_codes_e {
+enum status_code_e {
 	SC_OK = 0,
+	SC_FAILED = 1,
 
-	// Bootstrap errors
-	SC_BS_ERR_CMD,
+	// bootstrap errors
+	SC_BS_ERR_CMD = 201,
 	SC_BS_ERR_LOG,
 	SC_BS_ERR_APR_INIT,
 	SC_BS_ERR_CONF,
 
-	// Others
+	// web server errors
+	SC_WS_LISTEN_FAILED,
+
+	// others
 	SC_TERMINATED = 0x0face0ff
 };
-typedef enum status_codes_e status_codes;
+typedef enum status_code_e status_code_e;
 
 #endif /* EXIT_CODES_H_ */
