@@ -30,7 +30,6 @@
 #include <memory.h>
 
 #include <syslog.h>
-#include <signal.h>
 #include <sys/stat.h>
 #include <sys/types.h>
 
@@ -67,5 +66,8 @@ typedef int64_t		int64;
 #define APR_ERR_PRINT(rv) { char buf[512]; apr_strerror(rv, buf, sizeof(buf)); \
 	log_err("APR ERROR: %s", buf); \
 }
+
+#include "status_codes.h"
+
 
 #endif /* EAD_SERVER_H_ */

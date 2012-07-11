@@ -1,7 +1,8 @@
 /*
+  signals.h
   This file is part of e-additives.server
 
-  Copyright (C) 2012 Petar Petrov
+  Copyright (C) 2012 necroleak
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,20 +23,37 @@
 
 */
 
-#include "globals.h"
-#include "bootstrap.h"
-//#include "tests.h"
+#ifndef SIGNALS_H_
+#define SIGNALS_H_
 
-int main(int argc, char* argv[]) {
-#if 0
-	testtokens_1();
-	exit(1);
+/**
+ * Custom Unix signals structure. It describes what kind of signals are recognized.
+ */
+struct signals_t {
+	int signum;
+	char *signame;
+	void (*signalhandler)(int signum);
+};
+typedef struct signals_t signals_t;
+
+#ifdef __cplusplus
+extern "C" {
 #endif
-	int rv = bs_init(argc, argv);
-	if (rv == SC_OK) {
-		bs_start();
-		bs_stop();
-	}
 
-    return rv;
+/**
+ * Register signal handling
+ */
+void signals_init();
+
+/**
+ * Handle system signals
+ * @param signum
+ * @remark http://www.cs.utah.edu/dept/old/texinfo/glibc-manual-0.02/library_21.html
+ */
+void signals_handler(int signum);
+
+#ifdef __cplusplus
 }
+#endif
+
+#endif /* SIGNALS_H_ */

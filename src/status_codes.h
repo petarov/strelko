@@ -1,7 +1,8 @@
 /*
+  exit_codes.h
   This file is part of e-additives.server
 
-  Copyright (C) 2012 Petar Petrov
+  Copyright (C) 2012 necroleak
 
   This program is free software; you can redistribute it and/or modify
   it under the terms of the GNU General Public License as published by
@@ -22,20 +23,21 @@
 
 */
 
-#include "globals.h"
-#include "bootstrap.h"
-//#include "tests.h"
+#ifndef EXIT_CODES_H_
+#define EXIT_CODES_H_
 
-int main(int argc, char* argv[]) {
-#if 0
-	testtokens_1();
-	exit(1);
-#endif
-	int rv = bs_init(argc, argv);
-	if (rv == SC_OK) {
-		bs_start();
-		bs_stop();
-	}
+enum status_codes_e {
+	SC_OK = 0,
 
-    return rv;
-}
+	// Bootstrap errors
+	SC_BS_ERR_CMD,
+	SC_BS_ERR_LOG,
+	SC_BS_ERR_APR_INIT,
+	SC_BS_ERR_CONF,
+
+	// Others
+	SC_TERMINATED = 0x0face0ff
+};
+typedef enum status_codes_e status_codes;
+
+#endif /* EXIT_CODES_H_ */

@@ -80,9 +80,10 @@ endif (UNIX AND NOT WIN32)
 add_definitions(-D_LARGEFILE_SOURCE=1)
 add_definitions(-D_LARGEFILE64_SOURCE)
 add_definitions(-D_FILE_OFFSET_BITS=64)
-
 # We compile in C99 mode
 add_definitions(-std=c99)
+# wtf -> http://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xsh_chap02.html#tag_22_02_02
+add_definitions(-D_XOPEN_SOURCE)
 
 ### configure a header file to pass some of the CMake settings to the source code
 configure_file (
