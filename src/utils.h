@@ -1,5 +1,5 @@
 /*
-  helpers.h
+  utils.h
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -23,8 +23,8 @@
 
 */
 
-#ifndef HELPERS_H_
-#define HELPERS_H_
+#ifndef UTILS_H_
+#define UTILS_H_
 
 // Fix this stupid issue with apr.h
 #ifndef PATH_MAX
@@ -97,4 +97,4 @@ strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp);
 }
 #endif
 
-#endif /* HELPERS_H_ */
+#endif /* UTILS_H_ */

@@ -1,5 +1,5 @@
 /*
-  helpers.c
+  utils.c
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -25,7 +25,7 @@
 
 #include <ctype.h>
 #include <string.h>
-#include "helpers.h"
+#include "utils.h"
 
 #include <apr_strings.h>
 #include <apr_lib.h>
