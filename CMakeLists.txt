@@ -73,7 +73,7 @@ if (UNIX AND NOT WIN32)
 		add_definitions(-DARCH_X64)
     else (CMAKE_SIZEOF_VOID_P MATCHES "8")
 		add_definitions(-DARCH_X86)
-		set(CPU_ARCH 64)
+		set(CPU_ARCH 86)
     endif (CMAKE_SIZEOF_VOID_P MATCHES "8")
 endif (UNIX AND NOT WIN32)
 
@@ -96,20 +96,23 @@ configure_file (
 APP_DEBUG_MESSAGE("Building src/ ..." )
 
 include_directories(/src)
+include_directories(/test)
 include_directories(/usr/include/apr-1)
 
 set( 
     SOURCES 
-    src/ead_server.c
     src/bootstrap.c
+    src/conf_parser.c
+    src/ead_server.c
+    src/logger.c
     src/rtc.c
+    src/signals.c
+    src/utils.c
     src/webserver.c
-    src/utils/conf_parser.c
-    src/utils/helpers.c
-    src/utils/logger.c
+    test/tests.c
 )
 
-APP_DEBUG_MESSAGE("src/ Sources: ${SOURCES}")
+APP_DEBUG_MESSAGE("Sources: ${SOURCES}")
 
 ### Build #################################################################
 add_executable (	

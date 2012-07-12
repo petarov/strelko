@@ -28,7 +28,7 @@
 #include <unistd.h>
 
 #include "globals.h"
-#include "utils/logger.h"
+#include "logger.h"
 #include "bootstrap.h"
 #include "signals.h"
 

@@ -24,7 +24,7 @@
 */
 
 #include "globals.h"
-#include "utils/logger.h"
+#include "logger.h"
 #include "rtc.h"
 
 status_code_t rtc_create(runtime_context_t **rtc) {

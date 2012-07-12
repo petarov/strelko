@@ -26,17 +26,9 @@
 #ifndef TESTS_H_
 #define TESTS_H_
 
-// control functions
-int run_all_tests();
+// test suits
+int run_all_test_suits();
 
-// server module
-void test_server_1();
-
-// logging module
-void test_logs_1();
-void test_logs_2();
-
-// helpers
-void testtokens_1();
+// test cases
 
 #endif /* TESTS_H_ */

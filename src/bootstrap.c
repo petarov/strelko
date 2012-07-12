@@ -24,8 +24,8 @@
 */
 
 #include "globals.h"
-#include "utils/logger.h"
-#include "utils/conf_parser.h"
+#include "logger.h"
+#include "conf_parser.h"
 #include "webserver.h"
 #include "signals.h"
 #include "bootstrap.h"

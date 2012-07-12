@@ -24,12 +24,11 @@
 */
 
 #include "globals.h"
-#include "utils/logger.h"
-#include "utils/conf_parser.h"
+#include "logger.h"
+#include "conf_parser.h"
 #include "webserver.h"
 
 #define BUFSIZE			4096
-#define CRLF_STR		"\r\n"
 
 static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
 	TRACE;
@@ -66,14 +65,12 @@ error:
     return rv;
 }
 
-static int do_serv_task(apr_socket_t *sock, apr_pool_t *mp) {
+static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 	TRACE;
 
-    int is_firstline = TRUE;
-    const char *filepath = NULL;
+	char buf[BUFSIZE];
 
     while (1) {
-    	char buf[BUFSIZE];
 		apr_size_t len = sizeof(buf) - 1; // -1 for a null-terminated
 		apr_status_t rv = apr_socket_recv(sock, buf, &len);
 		if (rv == APR_EOF || len == 0)
@@ -82,15 +79,17 @@ static int do_serv_task(apr_socket_t *sock, apr_pool_t *mp) {
 		// null-terminate the string buffer
 		buf[len] = '\0';
 
-		if (is_firstline) {
-			char **tokens;
-			apr_tokenize_to_argv(buf, &tokens, mp);
-			if (tokens[0] && tokens[1] && strcmp(tokens[0], "GET") == 0) {
-				filepath = tokens[1];
-			}
-			is_firstline = FALSE;
-		}
-		if (strstr(buf, CRLF_STR CRLF_STR)) {/* expect the end of the request. no guarantee */
+//		if (is_firstline) {
+//			char **tokens;
+//			apr_tokenize_to_argv(buf, &tokens, mp);
+//			if (tokens[0] && tokens[1] && strcmp(tokens[0], "GET") == 0) {
+//				filepath = tokens[1];
+//			}
+//			is_firstline = FALSE;
+//		}
+
+		// expect the end of the request. no guarantee
+		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
 			break;
 		}
     }
@@ -122,7 +121,7 @@ static int do_serv_task(apr_socket_t *sock, apr_pool_t *mp) {
 
     /* error case */
     {
-        const char *resp_hdr = "HTTP/1.0 404 Not Found" CRLF_STR CRLF_STR;
+        const char *resp_hdr = "HTTP/1.0 404 Not Found" HTTP_CRLF HTTP_CRLF;
         apr_size_t len = strlen(resp_hdr);
         apr_socket_send(sock, resp_hdr, &len);
         return TRUE;
@@ -168,7 +167,7 @@ status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc) {
 		apr_socket_opt_set(client_sock, APR_SO_NONBLOCK, 0);
 		apr_socket_timeout_set(client_sock, -1);
 
-		if (!do_serv_task(client_sock, mp)) {
+		if (!s_process_packet(client_sock, mp)) {
 			log_err("Failed to serve client!");
 			//goto error;
 		}
@@ -184,4 +183,12 @@ void websrv_stop(web_server_t *ws) {
 
 	log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
 	ws->is_running = FALSE;
+}
+
+status_code_t http_parse_request(char *payload, http_request_t *request) {
+	ASSERT(request != NULL);
+
+	//TODO
+
+	return SC_OK;
 }
