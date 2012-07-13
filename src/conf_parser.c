@@ -96,24 +96,24 @@ conf_opt_t* s_opt_parse(const char *key, const char *value, runtime_context_t *r
 			// now check if the value is of the expected type
 			switch(options->type) {
 			case CT_INT:
-				if (hlp_isnum(value, MAX_OPTION_VALUE_SIZE)) {
+				if (utils_isnum(value, MAX_OPTION_VALUE_SIZE)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
 					opt->u.int_val = strtol(value, (char **)NULL, 10);
 				}
 				break;
 			case CT_STRING:
-				if (hlp_isstr(value, MAX_OPTION_VALUE_SIZE)) {
+				if (utils_isstr(value, MAX_OPTION_VALUE_SIZE)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
 					opt->u.str_val = apr_pstrdup(rtc->mem_pool, value);
 				}
 				break;
 			case CT_BOOL:
-				if (hlp_isbool(value)) {
+				if (utils_isbool(value)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->u.bool_val = hlp_tobool(value);
+					opt->u.bool_val = utils_tobool(value);
 				}
 				break;
 			}
@@ -181,14 +181,14 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 
 		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
 
-			if (hlp_isblank(line))
+			if (utils_isblank(line))
 				continue;
 
 			// remove stupid white spaces :)
 			apr_collapse_spaces(line, line);
 
 			if (!s_iscomment(line)) {
-				strtokens_t *tokens = hlp_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
+				strtokens_t *tokens = utils_strsplit(line, CONF_OPT_SEPARATOR, rtc->mem_pool);
 				if (tokens->size > 1 && s_is_opt_valid(tokens->token[0]) ) {
 
 					char *key = tokens->token[0];

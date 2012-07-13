@@ -25,6 +25,7 @@
 #ifndef EAD_SERVER_H_
 #define EAD_SERVER_H_
 
+#include <stddef.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <memory.h>

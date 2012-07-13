@@ -42,34 +42,34 @@ extern "C" {
  * @param str
  * @param size
  */
-int hlp_isnum(const char *str, int size);
+int utils_isnum(const char *str, int size);
 
 /**
  * Check if string value consists only of ASCII 7-bit values
  * @param str
  * @param size
  */
-int hlp_isstr(const char *str, int size);
+int utils_isstr(const char *str, int size);
 
 /**
  * Check if string value is of boollean type. Either 'true' or 'false' or '1' or '0'.
  * @param str
  * @param size
  */
-int hlp_isbool(const char *str);
+int utils_isbool(const char *str);
 
 /**
  * Convert string to boolean value
  * @param str String must be one of the following: TRUE, true, FALSE, false, 1 or 0
  * @Return 0 if string is FALSE, false or 0, otherwise returns 1
  */
-int hlp_tobool(const char *str);
+int utils_tobool(const char *str);
 
 /**
  * Check if line is blank
  * @param str
  */
-int hlp_isblank(const char *str);
+int utils_isblank(const char *str);
 
 /**
  * Holds string tokens created from the hlp_strsplit() function
@@ -91,7 +91,7 @@ typedef struct strtokens_t strtokens_t;
  * tokens found
  * @remark If no string could not be split, the .size field will be set to 1
  */
-strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp);
+strtokens_t* utils_strsplit(char *str, const char *sep, apr_pool_t *mp);
 
 #ifdef __cplusplus
 }

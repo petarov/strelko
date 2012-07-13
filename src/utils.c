@@ -31,7 +31,7 @@
 #include <apr_lib.h>
 #include <apr_tables.h>
 
-int hlp_isnum(const char *str, int size) {
+int utils_isnum(const char *str, int size) {
 	const char *p = str;
 	int i = size;
 
@@ -43,7 +43,7 @@ int hlp_isnum(const char *str, int size) {
 	return TRUE;
 }
 
-int hlp_isstr(const char *str, int size) {
+int utils_isstr(const char *str, int size) {
 	const char *p = str;
 	int i = size;
 
@@ -55,7 +55,7 @@ int hlp_isstr(const char *str, int size) {
 	return TRUE;
 }
 
-int hlp_isbool(const char *str) {
+int utils_isbool(const char *str) {
 	return (!strncmp("true", str, 4) || !strncmp("false", str, 5) ||
 			!strncmp("TRUE", str, 4) || !strncmp("FALSE", str, 5) ||
 			!strncmp("1", str, 1) || !strncmp("0", str, 1) );
@@ -70,12 +70,12 @@ int hlp_isbool(const char *str) {
 //	return TRUE;
 }
 
-int hlp_tobool(const char *str) {
+int utils_tobool(const char *str) {
 	return (!strncmp("false", str, 5) || !strncmp("FALSE", str, 5) ||
 			!strncmp("0", str, 1)) ? FALSE : TRUE;
 }
 
-int hlp_isblank(const char *str) {
+int utils_isblank(const char *str) {
 	const char *p = str;
 
 	while(*p != '\0') {
@@ -86,7 +86,7 @@ int hlp_isblank(const char *str) {
 	return TRUE;
 }
 
-strtokens_t* hlp_strsplit(char *str, const char *sep, apr_pool_t *mp) {
+strtokens_t* utils_strsplit(char *str, const char *sep, apr_pool_t *mp) {
 
 	strtokens_t 		*tokens = apr_palloc(mp, sizeof(strtokens_t));
 	apr_array_header_t 	*arr 	= apr_array_make(mp, TOKEN_ARRAY_INIT_SIZE, sizeof(const char *));

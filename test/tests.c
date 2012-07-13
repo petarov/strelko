@@ -55,7 +55,7 @@ char* tc_utils_1() {
 	mu_trace(tc_utils_1);
 
 	char *name = "Firstname=Middlename=Lastname Tartd";
-	strtokens_t *t = hlp_strsplit(strdup(name), "=", test_pool);
+	strtokens_t *t = utils_strsplit(strdup(name), "=", test_pool);
 	printf("size: %d\n", t->size);
 	char **p = t->token;
 	while(*p != NULL) {
@@ -68,7 +68,7 @@ char* tc_utils_1() {
 
 	// part 2
 	name = "Brothers in )(*)(%)(@#)@(#";
-	t = hlp_strsplit(strdup(name), " ", test_pool);
+	t = utils_strsplit(strdup(name), " ", test_pool);
 	printf("size: %d\n", t->size);
 	p = t->token;
 	while(*p != NULL) {
@@ -84,14 +84,34 @@ char* tc_utils_1() {
 char* tc_utils_2() {
 	mu_trace(tc_utils_2);
 
-	mu_assert("isbool(1)", hlp_isbool("1") );
-	mu_assert("isbool(0)", hlp_isbool("0") );
-	mu_assert("isbool(alfa)", !hlp_isbool("alfa") );
-	mu_assert("isbool(TRUE)", hlp_isbool("TRUE") );
-	mu_assert("isbool(true)", hlp_isbool("true") );
-	mu_assert("isbool(FALSE)", hlp_isbool("FALSE") );
-	mu_assert("isbool(false)", hlp_isbool("false") );
-	mu_assert("isbool(fAlse)", !hlp_isbool("fAlse") );
+	mu_assert("isbool(1)", utils_isbool("1") );
+	mu_assert("isbool(0)", utils_isbool("0") );
+	mu_assert("isbool(alfa)", !utils_isbool("alfa") );
+	mu_assert("isbool(TRUE)", utils_isbool("TRUE") );
+	mu_assert("isbool(true)", utils_isbool("true") );
+	mu_assert("isbool(FALSE)", utils_isbool("FALSE") );
+	mu_assert("isbool(false)", utils_isbool("false") );
+	mu_assert("isbool(fAlse)", !utils_isbool("fAlse") );
+
+	mu_assert("_tobool(TRUE)", utils_tobool("TRUE") == 1);
+	mu_assert("_tobool(false)", utils_tobool("false") == 0);
+	mu_assert("_tobool(test)", utils_tobool("test") == 1);
+	mu_assert("_tobool(falSe)", utils_tobool("falSe") == 1); // ?!
+	mu_assert("_tobool(trUe)", utils_tobool("trUe") == 1);
+	mu_assert("_tobool(0)", utils_tobool("0") == 0);
+	mu_assert("_tobool(1)", utils_tobool("1") == 1);
+
+	mu_assert("_isblank(   BLA $§ BLA)", !utils_isblank("   BLA $§ BLA") );
+	mu_assert("_isblank()", utils_isblank("") );
+	mu_assert("_isblank( 	)", utils_isblank(" 	") );
+
+	mu_assert("_isnum(1234567890)", utils_isnum("1234567890", 10) );
+	mu_assert("_isnum(QWERTZUIOPASDFGHJKLÖ!\"§$%&/()=1234567890ß)", !utils_isnum("QWERTZUIOPASDFGHJKLÖ!\"§$%&/()=1234567890ß", 42) );
+
+	mu_assert("_isstr(YXCVBNMQWERTZUIOPsadfghjklö1234567890%/&()=?$(!)", utils_isstr("YXCVBNMQWERTZUIOPsadfghjkl1234567890%/&()=?$(!", 47) );
+	mu_assert("_isstr(1234567890)", utils_isstr("1234567890", 10) );
+	mu_assert("_isstr(spaces,tabs)", utils_isstr("\n\r\t", 3) );
+	mu_assert("_isstr(öüä)", !utils_isstr("öüä", 3) ); // not ASCII
 
 	return NULL;
 }

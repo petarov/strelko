@@ -34,6 +34,20 @@ enum logger_output_types_e {
 };
 typedef enum logger_output_types_e logger_output_types_e;
 
+#ifdef DEBUG
+#define TRACE log_debug("%s %d", __FILE__, __LINE__)
+#define log_debug(...) log_write(LOG_DEBUG, __VA_ARGS__)  /* debug-level messages */
+#else
+#define TRACE
+#define log_debug(...)
+#endif
+
+#define log_info(...) log_write(LOG_INFO, __VA_ARGS__)  /* informational */
+#define log_notice(...) log_write(LOG_NOTICE, __VA_ARGS__)  /* normal but significant condition */
+#define log_warn(...) log_write(LOG_WARNING, __VA_ARGS__)  /* warning conditions */
+#define log_err(...) log_write(LOG_ERR, __VA_ARGS__)  /* error conditions */
+#define log_crit(...) log_write(LOG_CRIT, __VA_ARGS__)  /* critical conditions */
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -57,20 +71,6 @@ int log_init_ex(const char *application_name, logger_output_types_e log_type);
  * @format
  */
 void log_write(int level, char *format, ...);
-
-#ifdef DEBUG
-#define TRACE log_debug("%s %d", __FILE__, __LINE__)
-#define log_debug(...) log_write(LOG_DEBUG, __VA_ARGS__)  /* debug-level messages */
-#else
-#define TRACE
-#define log_debug(...)
-#endif
-
-#define log_info(...) log_write(LOG_INFO, __VA_ARGS__)  /* informational */
-#define log_notice(...) log_write(LOG_NOTICE, __VA_ARGS__)  /* normal but significant condition */
-#define log_warn(...) log_write(LOG_WARNING, __VA_ARGS__)  /* warning conditions */
-#define log_err(...) log_write(LOG_ERR, __VA_ARGS__)  /* error conditions */
-#define log_crit(...) log_write(LOG_CRIT, __VA_ARGS__)  /* critical conditions */
 
 /**
  * Cleanup logging resources
