@@ -53,11 +53,18 @@ typedef struct web_server_t web_server_t;
  * Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
  */
 struct http_request_t {
-	char *method;
+	const char *method;
 	char *uri;
 	char *http_version;
 
 	char *message_body;
+	char *raw_body;
+
+	char *cookies;
+
+	const char *content_type;
+	long content_len;
+
 
 };
 typedef struct http_request_t http_request_t;
