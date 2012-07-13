@@ -99,21 +99,21 @@ conf_opt_t* s_opt_parse(const char *key, const char *value, runtime_context_t *r
 				if (hlp_isnum(value, MAX_OPTION_VALUE_SIZE)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->int_val = strtol(value, (char **)NULL, 10);
+					opt->u.int_val = strtol(value, (char **)NULL, 10);
 				}
 				break;
 			case CT_STRING:
 				if (hlp_isstr(value, MAX_OPTION_VALUE_SIZE)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->str_val = apr_pstrdup(rtc->mem_pool, value);
+					opt->u.str_val = apr_pstrdup(rtc->mem_pool, value);
 				}
 				break;
 			case CT_BOOL:
 				if (hlp_isbool(value)) {
 					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
 					opt->key = key;
-					opt->bool_val = hlp_tobool(value);
+					opt->u.bool_val = hlp_tobool(value);
 				}
 				break;
 			}

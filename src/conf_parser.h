@@ -38,7 +38,7 @@ struct conf_opt_t {
 		char *str_val;
 		int int_val;
 		int bool_val;
-	};
+	} u;
 };
 typedef struct conf_opt_t conf_opt_t;
 
@@ -96,15 +96,15 @@ const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc);
 /**
  * Get string from configuration macro. Requires valid runtime context.
  */
-#define CF_STR(key) conf_get_opt(key, rtc)->str_val
+#define CF_STR(key) conf_get_opt(key, rtc)->u.str_val
 /**
  * Get integer from configuration macro. Requires valid runtime context.
  */
-#define CF_INT(key) conf_get_opt(key, rtc)->int_val
+#define CF_INT(key) conf_get_opt(key, rtc)->u.int_val
 /**
  * Get boolean from configuration macro. Requires valid runtime context.
  */
-#define CF_BOOL(key) conf_get_opt(key, rtc)->bool_val
+#define CF_BOOL(key) conf_get_opt(key, rtc)->u.bool_val
 
 #ifdef __cplusplus
 }
