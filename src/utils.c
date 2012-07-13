@@ -36,7 +36,7 @@ int utils_isnum(const char *str, int size) {
 	int i = size;
 
 	while(i-- > 0 && *p != '\0') {
-		if (!apr_isdigit(*p))
+		if (!ISNUM(*p))
 			return FALSE;
 		p++;
 	}
@@ -57,8 +57,8 @@ int utils_isstr(const char *str, int size) {
 
 int utils_isbool(const char *str) {
 	return (!strncmp("true", str, 4) || !strncmp("false", str, 5) ||
-			!strncmp("TRUE", str, 4) || !strncmp("FALSE", str, 5) ||
-			!strncmp("1", str, 1) || !strncmp("0", str, 1) );
+			!strncmp("1", str, 1) || !strncmp("0", str, 1) ||
+			!strncmp("TRUE", str, 4) || !strncmp("FALSE", str, 5) );
 //	const char *p = str;
 //	int i = size;
 //
@@ -79,7 +79,7 @@ int utils_isblank(const char *str) {
 	const char *p = str;
 
 	while(*p != '\0') {
-		if (*p != '\t' && *p != ' ' && *p != '\n' && *p != '\r')
+		if (!ISWHITESPACE(*p))
 			return FALSE;
 		p++;
 	}
