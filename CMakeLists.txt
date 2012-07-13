@@ -95,10 +95,8 @@ configure_file (
 #add_subdirectory(src)
 APP_DEBUG_MESSAGE("Building src/ ..." )
 
-include_directories(/src)
-include_directories(/test)
+include_directories(src test ext/http-parser)
 include_directories(/usr/include/apr-1)
-
 set( 
     SOURCES 
     src/bootstrap.c
@@ -110,6 +108,7 @@ set(
     src/utils.c
     src/webserver.c
     test/tests.c
+    ext/http-parser/http_parser.c
 )
 
 APP_DEBUG_MESSAGE("Sources: ${SOURCES}")

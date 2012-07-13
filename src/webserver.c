@@ -27,6 +27,7 @@
 #include "logger.h"
 #include "conf_parser.h"
 #include "webserver.h"
+#include "http_parser.h"
 
 #define BUFSIZE			4096
 
@@ -65,10 +66,19 @@ error:
     return rv;
 }
 
+static int http_callback1(http_parser *parser, const char *at, size_t length) {
+	printf("hello %s", at);
+	return 0;
+}
+
 static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 	TRACE;
 
 	char buf[BUFSIZE];
+	http_parser_settings settings;
+	settings.on_header_field = http_callback1;
+	http_parser *parser = malloc(sizeof(http_parser));
+	http_parser_init(parser, HTTP_REQUEST);
 
     while (1) {
 		apr_size_t len = sizeof(buf) - 1; // -1 for a null-terminated
@@ -78,6 +88,8 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 
 		// null-terminate the string buffer
 		buf[len] = '\0';
+
+		http_parser_execute(parser, &settings, buf, len);
 
 //		if (is_firstline) {
 //			char **tokens;
@@ -94,6 +106,7 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 		}
     }
 
+    free(parser);
 //    if (filepath) {
 //        apr_status_t rv;
 //        apr_file_t *fp;
