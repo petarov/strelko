@@ -66,8 +66,13 @@ error:
     return rv;
 }
 
-static int http_callback1(http_parser *parser, const char *at, size_t length) {
-	printf("hello %s", at);
+static int http_header_cb(http_parser *parser, const char *at, size_t length) {
+	printf("HDR: %s", at);
+	return 0;
+}
+
+static int http_body_cb(http_parser *parser, const char *at, size_t length) {
+	printf("BODY: %s", at);
 	return 0;
 }
 
@@ -76,11 +81,14 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 
 	char buf[BUFSIZE];
 	http_parser_settings settings;
-	settings.on_header_field = http_callback1;
-	http_parser *parser = malloc(sizeof(http_parser));
+	settings.on_header_field = http_header_cb;
+	settings.on_header_value = http_header_cb;
+	settings.on_body = http_body_cb;
+
+	http_parser *parser = apr_palloc(mp, sizeof(http_parser));
 	http_parser_init(parser, HTTP_REQUEST);
 
-    while (1) {
+	while (1) {
 		apr_size_t len = sizeof(buf) - 1; // -1 for a null-terminated
 		apr_status_t rv = apr_socket_recv(sock, buf, &len);
 		if (rv == APR_EOF || len == 0)
@@ -88,25 +96,14 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 
 		// null-terminate the string buffer
 		buf[len] = '\0';
-
 		http_parser_execute(parser, &settings, buf, len);
 
-//		if (is_firstline) {
-//			char **tokens;
-//			apr_tokenize_to_argv(buf, &tokens, mp);
-//			if (tokens[0] && tokens[1] && strcmp(tokens[0], "GET") == 0) {
-//				filepath = tokens[1];
-//			}
-//			is_firstline = FALSE;
-//		}
-
-		// expect the end of the request. no guarantee
+		// TODO client struct needed ?!
 		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
 			break;
 		}
     }
 
-    free(parser);
 //    if (filepath) {
 //        apr_status_t rv;
 //        apr_file_t *fp;
@@ -196,12 +193,4 @@ void websrv_stop(web_server_t *ws) {
 
 	log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
 	ws->is_running = FALSE;
-}
-
-status_code_t http_parse_request(char *payload, http_request_t *request) {
-	ASSERT(request != NULL);
-
-	//TODO
-
-	return SC_OK;
 }

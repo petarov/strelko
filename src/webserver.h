@@ -76,10 +76,6 @@ typedef struct http_request_t http_request_t;
 #define HTTP_METHOD_PUT		"PUT"
 #define HTTP_METHOD_DELETE	"DELETE"
 
-#define HTTP_VERSION_10		"1.0"
-#define HTTP_VERSION_11		"1.1"
-
-
 /**
  * Creates a webserver configuration instance
  * @param ws Non-initialized web_server_t structure
@@ -100,8 +96,6 @@ status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc);
  * with websrv_start()
  */
 void websrv_stop(web_server_t *ws);
-
-status_code_t http_parse_request(char *payload, http_request_t *request);
 
 #ifdef __cplusplus
 }
