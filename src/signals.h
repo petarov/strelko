@@ -26,6 +26,11 @@
 #ifndef SIGNALS_H_
 #define SIGNALS_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /**
  * Custom Unix signals structure. It describes what kind of signals are recognized.
  */
@@ -35,10 +40,6 @@ struct signals_t {
 	void (*signalhandler)(int signum);
 };
 typedef struct signals_t signals_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Register signal handling

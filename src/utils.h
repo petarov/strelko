@@ -33,12 +33,12 @@
 
 #include <apr_pools.h>
 
-#define ISNUM(c) 		(c >= '0' && c <= '9')
-#define ISWHITESPACE(c) (c == '\t' || c == ' ' || c == '\n' || c == '\r')
-
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define ISNUM(c) 		(c >= '0' && c <= '9')
+#define ISWHITESPACE(c) (c == '\t' || c == ' ' || c == '\n' || c == '\r')
 
 /**
  * Check if string value consists only of numeric values

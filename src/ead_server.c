@@ -29,7 +29,6 @@
 int main(int argc, char* argv[]) {
 
 	if (argc > 1 && !strncmp(argv[1], "test", 4)) {
-		printf("\n --- Running test suits --- \n");
 		int rv = run_all_test_suits();
 		exit(rv);
 	}

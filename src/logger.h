@@ -28,6 +28,11 @@
 
 #include <syslog.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 enum logger_output_types_e {
 	L_NONE = 0,
 	L_SYSLOG = 0x00000001
@@ -47,10 +52,6 @@ typedef enum logger_output_types_e logger_output_types_e;
 #define log_warn(...) log_write(LOG_WARNING, __VA_ARGS__)  /* warning conditions */
 #define log_err(...) log_write(LOG_ERR, __VA_ARGS__)  /* error conditions */
 #define log_crit(...) log_write(LOG_CRIT, __VA_ARGS__)  /* critical conditions */
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Initialize logging system

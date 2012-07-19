@@ -28,6 +28,10 @@
 
 #include <apr_hash.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /**
  * Runtime context that encapsulates all global parameters
  */
@@ -37,10 +41,6 @@ struct runtime_context_t {
 	apr_hash_t *options;
 };
 typedef struct runtime_context_t runtime_context_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Allocates new runtime configuration context

@@ -26,6 +26,11 @@
 #ifndef CONF_PARSER_H_
 #define CONF_PARSER_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /**
  * Maximum size of a configuration line
  */
@@ -64,10 +69,6 @@ struct conf_optinfo_t {
 	int optional;
 };
 typedef struct conf_optinfo_t conf_optinfo_t;
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 /**
  * Initializes configuration parameters.

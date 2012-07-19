@@ -26,6 +26,10 @@
 #ifndef EXIT_CODES_H_
 #define EXIT_CODES_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 enum status_code_e {
 	SC_OK = 0,
 	SC_FAILED = 1,
@@ -43,5 +47,9 @@ enum status_code_e {
 	SC_TERMINATED = 0x0face0ff
 };
 typedef enum status_code_e status_code_e;
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* EXIT_CODES_H_ */

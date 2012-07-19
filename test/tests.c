@@ -101,17 +101,17 @@ char* tc_utils_2() {
 	mu_assert("_tobool(0)", utils_tobool("0") == 0);
 	mu_assert("_tobool(1)", utils_tobool("1") == 1);
 
-	mu_assert("_isblank(   BLA $§ BLA)", !utils_isblank("   BLA $§ BLA") );
+	mu_assert("_isblank(   BLA $ï¿½ BLA)", !utils_isblank("   BLA $ï¿½ BLA") );
 	mu_assert("_isblank()", utils_isblank("") );
 	mu_assert("_isblank( 	)", utils_isblank(" 	") );
 
 	mu_assert("_isnum(1234567890)", utils_isnum("1234567890", 10) );
-	mu_assert("_isnum(QWERTZUIOPASDFGHJKLÖ!\"§$%&/()=1234567890ß)", !utils_isnum("QWERTZUIOPASDFGHJKLÖ!\"§$%&/()=1234567890ß", 42) );
+	mu_assert("_isnum(QWERTZUIOPASDFGHJKLï¿½!\"ï¿½$%&/()=1234567890ï¿½)", !utils_isnum("QWERTZUIOPASDFGHJKLï¿½!\"ï¿½$%&/()=1234567890ï¿½", 42) );
 
-	mu_assert("_isstr(YXCVBNMQWERTZUIOPsadfghjklö1234567890%/&()=?$(!)", utils_isstr("YXCVBNMQWERTZUIOPsadfghjkl1234567890%/&()=?$(!", 47) );
+	mu_assert("_isstr(YXCVBNMQWERTZUIOPsadfghjklï¿½1234567890%/&()=?$(!)", utils_isstr("YXCVBNMQWERTZUIOPsadfghjkl1234567890%/&()=?$(!", 47) );
 	mu_assert("_isstr(1234567890)", utils_isstr("1234567890", 10) );
 	mu_assert("_isstr(spaces,tabs)", utils_isstr("\n\r\t", 3) );
-	mu_assert("_isstr(öüä)", !utils_isstr("öüä", 3) ); // not ASCII
+	mu_assert("_isstr(ï¿½ï¿½ï¿½)", !utils_isstr("ï¿½ï¿½ï¿½", 3) ); // not ASCII
 
 	return NULL;
 }
@@ -163,6 +163,8 @@ char* test_suit_utils() {
 }
 
 int run_all_test_suits() {
+
+	printf("\n --- Running test suites --- \n");
 
 	// all utils tests
 	mu_run_testsuite(test_suit_utils);
