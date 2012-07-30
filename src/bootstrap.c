@@ -26,7 +26,7 @@
 #include "globals.h"
 #include "logger.h"
 #include "conf_parser.h"
-#include "webserver.h"
+#include "httpserver.h"
 #include "signals.h"
 #include "bootstrap.h"
 
@@ -101,14 +101,14 @@ void bs_start() {
 	TRACE;
 
 	// Fire-up the web server
-	websrv_create(&websrv, rtctx);
-	websrv_start(websrv, rtctx);
+	httpsrv_create(&websrv, rtctx);
+	httpsrv_start(websrv, rtctx);
 }
 
 void bs_stop() {
 	TRACE;
 
-	websrv_stop(websrv);
+	httpsrv_stop(websrv);
 
 	rtc_destroy(&rtctx);
 	apr_terminate();

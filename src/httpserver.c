@@ -1,5 +1,5 @@
 /*
-  webserver.c
+  httpserver.c
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -26,7 +26,8 @@
 #include "globals.h"
 #include "logger.h"
 #include "conf_parser.h"
-#include "webserver.h"
+#include "http.h"
+#include "httpserver.h"
 #include "http_parser.h"
 
 #define BUFSIZE			4096
@@ -138,7 +139,7 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
     }
 }
 
-status_code_t websrv_create(web_server_t **ws, runtime_context_t *rtc) {
+status_code_t httpsrv_create(web_server_t **ws, runtime_context_t *rtc) {
 	TRACE;
 
 	web_server_t *websrv = (web_server_t *)apr_palloc(rtc->mem_pool, sizeof(web_server_t));
@@ -150,7 +151,7 @@ status_code_t websrv_create(web_server_t **ws, runtime_context_t *rtc) {
 	return SC_OK;
 }
 
-status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc) {
+status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(ws != NULL);
 
@@ -187,7 +188,7 @@ status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	return SC_OK;
 }
 
-void websrv_stop(web_server_t *ws) {
+void httpsrv_stop(web_server_t *ws) {
 	TRACE;
 	ASSERT(ws != NULL);
 

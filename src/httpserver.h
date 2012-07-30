@@ -1,5 +1,5 @@
 /*
-  webserver.h
+  httpserver.h
   This file is part of e-additives.server
 
   Copyright (C) 2012 Petar Petrov
@@ -23,8 +23,8 @@
 
 */
 
-#ifndef WEBSERVER_H_
-#define WEBSERVER_H_
+#ifndef HTTPSERVER_H_
+#define HTTPSERVER_H_
 
 #ifdef __cplusplus
 extern "C" {
@@ -38,67 +38,29 @@ struct web_server_t {
 };
 typedef struct web_server_t web_server_t;
 
-/*
- * HTTP messages consist of requests from client to server and responses from server to client.
- * HTTP-message   = Request | Response     ; HTTP/1.1 messages
- *
- * generic-message 	= start-line
- * 					*(message-header CRLF)
- * 					CRLF
- * 					[ message-body ]
- * start-line		= Request-Line | Status-Line
-*/
-
-/*
- * Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
- */
-struct http_request_t {
-	const char *method;
-	char *uri;
-	char *http_version;
-
-	char *message_body;
-	char *raw_body;
-
-	char *cookies;
-
-	const char *content_type;
-	long content_len;
-
-
-};
-typedef struct http_request_t http_request_t;
-
-#define HTTP_CRLF			"\r\n"
-
-#define HTTP_METHOD_GET		"GET"
-#define HTTP_METHOD_POST	"POST"
-#define HTTP_METHOD_PUT		"PUT"
-#define HTTP_METHOD_DELETE	"DELETE"
-
 /**
  * Creates a webserver configuration instance
  * @param ws Non-initialized web_server_t structure
  * @param rtc Initialized runtime context
  */
-status_code_t websrv_create(web_server_t **ws, runtime_context_t *rtc);
+status_code_t httpsrv_create(web_server_t **ws, runtime_context_t *rtc);
 
 /**
  * Create web server listening socket and start listening for client connections
  * @param ws Initialized web_server context
  * @param rtc Initialized runtime context
  */
-status_code_t websrv_start(web_server_t *ws, runtime_context_t *rtc);
+status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc);
 
 /**
  * Set server shutdown flag
  * @param Initialized web_server context. The server must already have been started
  * with websrv_start()
  */
-void websrv_stop(web_server_t *ws);
+void httpsrv_stop(web_server_t *ws);
 
 #ifdef __cplusplus
 }
 #endif
 
-#endif /* WEBSERVER_H_ */
+#endif /* HTTPSERVER_H_ */
