@@ -45,6 +45,7 @@ set (VERSION_MIN 0)
 #find_package(pthread REQUIRED)
 
 # APR lib
+set( APRUTIL_LIB_NAME "libaprutil-1.so" )
 set( APR_LIB_NAME "libapr-1.so" )
 find_library( 
     APR_LIBRARY
@@ -106,7 +107,8 @@ set(
     src/rtc.c
     src/signals.c
     src/utils.c
-    src/webserver.c
+    src/httpserver.c
+    src/xmldb.c
     test/tests.c
     ext/http-parser/http_parser.c
 )
@@ -119,7 +121,7 @@ add_executable (
 	${SOURCES}
 )
 
-target_link_libraries(ead_server ${APR_LIB_NAME})
+target_link_libraries(ead_server ${APR_LIB_NAME} ${APRUTIL_LIB_NAME})
 
 ### prepare build
 set_target_properties(ead_server PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
