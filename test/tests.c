@@ -60,8 +60,11 @@ char* tc_xmldb_1() {
 	runtime_context_t rtc;
 	rtc.mem_pool = test_pool;
 
-	int ret = xmldb_init(dirname, &rtc);
-	mu_assert("XML dir load failed!", ret != FALSE);
+	status_code_t ret = xmldb_init(dirname, &rtc);
+	mu_assert("XML dir load failed!", ret == SC_OK);
+
+	int res = xmldb_get("en", "E100", &rtc);
+	mu_assert("E100 not found!", res);
 
 	return NULL;
 }

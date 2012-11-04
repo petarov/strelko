@@ -26,20 +26,74 @@
 #ifndef XMLDB_H_
 #define XMLDB_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+/**
+ * Xml database file
+ */
+struct xmldb_entry_t {
+	apr_xml_parser *xmlparser;
+	apr_xml_doc	*xmldoc;
+	char *language;
+	char *author;
+	char *date_created;
+	char *date_lastchange;
+};
+typedef struct xmldb_entry_t xmldb_entry_t;
+
+/**
+ * Collection of Xml databases
+ */
 struct xmldb_t {
-	char *key;
-	int optional;
+	int count;
+	apr_hash_t *db;
 };
 typedef struct xmldb_t xmldb_t;
+
+/**
+ * Tags and attributes contained in Xml databases
+ */
+#define XML_TAG_LOCALE 		"locale"
+#define XML_TAG_ITEMS 		"items"
+#define XML_TAG_ITEM 		"item"
+#define XML_TAG_DATA 		"data"
+#define XML_ATTRIB_LANGUAGE	"language"
+#define XML_ATTRIB_AUTHOR	"author"
+#define XML_ATTRIB_CREATED	"created"
+#define XML_ATTRIB_LASTCHANGE	"lastchange"
+#define XML_ATTRIB_KEY		"key"
+#define XML_ATTRIB_NAME		"name"
+#define XML_ATTRIB_STATUS	"status"
+#define XML_ATTRIB_VEGAN	"veg"
 
 /**
  * Load Xml files with additives info from given directory.
  * @param dirpath
  * @param rtc Runtime context with initialized memory pool
+ * @return status_code_t
  */
-int xmldb_init(const char *dirpath, runtime_context_t *rtc);
+status_code_t xmldb_init(const char *dirpath, runtime_context_t *rtc);
 
-void xmldb_query(const char *lang, const char *additive);
+/**
+ * Get addtive entry from database
+ * @param lang
+ * @param additive_code
+ * @return
+ */
+int xmldb_get(const char *lang, const char *additive_code, runtime_context_t *rtc);
 
+/**
+ *
+ * @param lang
+ * @param search_string
+ */
+//void xmldb_query(const char *lang, const char *search_string);
+
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* XMLDB_H_ */

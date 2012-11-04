@@ -43,6 +43,12 @@ enum status_code_e {
 	// web server errors
 	SC_WS_LISTEN_FAILED,
 
+	// xml database errors
+	SC_XMLDB_ERR_FILE = 801,
+	SC_XMLDB_ERR_HEADER = 802,
+	SC_XMLDB_ERR_LANGUAGE = 803,
+	SC_XMLDB_ERR_NO_DATABASES = 810,
+
 	// others
 	SC_TERMINATED = 0x0face0ff
 };
