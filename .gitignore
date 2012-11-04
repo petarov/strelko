@@ -11,6 +11,10 @@ Config.h
 cmake_install*
 Makefile
 build/
+*.plist
 
 # App
 ead.conf
+
+# Misc
+docs/*.*~
