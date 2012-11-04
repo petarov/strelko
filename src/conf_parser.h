@@ -72,7 +72,7 @@ typedef struct conf_optinfo_t conf_optinfo_t;
 
 /**
  * Initializes configuration parameters.
- * @param Configuration template of what options are expected to be loaded
+ * @param configs Configuration template of what options are expected to be loaded
  * @return Currently always returns TRUE
  */
 int conf_init(const conf_optinfo_t const *configs);

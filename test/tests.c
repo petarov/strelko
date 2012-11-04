@@ -26,6 +26,8 @@
 #include "globals.h"
 #include "logger.h"
 #include "minunit.h"
+
+#include "xmldb.h"
 #include "tests.h"
 
 #include <string.h>
@@ -48,6 +50,21 @@ static s_post() {
 	apr_terminate();
 }
 
+
+/************************ XMLDB ****************************************************************/
+char* tc_xmldb_1() {
+	mu_trace(tc_xmldb_1);
+
+	const char *dirname = "data";
+
+	runtime_context_t rtc;
+	rtc.mem_pool = test_pool;
+
+	int ret = xmldb_init(dirname, &rtc);
+	mu_assert("XML dir load failed!", ret != FALSE);
+
+	return NULL;
+}
 
 /************************ UTILS ****************************************************************/
 
@@ -155,10 +172,16 @@ void test_logs_2() {
 char* test_suit_utils() {
 	s_pre();
 
+	if (log_init(NULL)) {
+        fprintf(stderr, "Could not initialize logging system!\n");
+	}
+
     mu_run_test(tc_utils_1);
     mu_run_test(tc_utils_2);
+    mu_run_test(tc_xmldb_1);
 
 	s_post();
+	log_close();
 	return NULL;
 }
 
