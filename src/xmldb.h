@@ -50,7 +50,7 @@ struct xmldb_t {
 	int count;
 	apr_hash_t *db;
 };
-typedef struct xmldb_t xmldb_t;
+//typedef struct xmldb_t xmldb_t;
 
 /**
  * Tags and attributes contained in Xml databases

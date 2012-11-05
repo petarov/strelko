@@ -37,8 +37,8 @@ static int s_iscomment(char *line) {
 	return *line == '#' || *line == '/';
 }
 
-static int s_isvalid(char *line) {
-	char *p = line;
+static int s_isvalid(const char *line) {
+	const char *p = line;
 
 //	// most likely a comment ?
 //	if (*p == '#')

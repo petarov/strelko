@@ -71,9 +71,11 @@ static status_code_t s_load_xml(xmldb_entry_t **db_entry, apr_file_t *apr_file,
 	apr_status_t rv = apr_xml_parse_file(rtc->mem_pool, &parser, &doc, apr_file, 2000);
 	if (rv != APR_SUCCESS) {
 		APR_ERR_PRINT(rv);
+
 		if (parser != NULL) {
 			log_err("XML Error: %s", apr_xml_parser_geterror(parser, errbuf, 255));
 		}
+
 		return SC_XMLDB_ERR_FILE;
 	} else {
 		// create new database entry
@@ -118,7 +120,7 @@ status_code_t xmldb_init(const char *dirpath, runtime_context_t *rtc) {
 
 	apr_status_t rv			= APR_SUCCESS;
 	apr_dir_t *apr_dir		= NULL;
-	apr_file_t *apr_file 	= NULL;
+	apr_file_t *apr_file	= NULL;
 	status_code_t ret		= SC_OK;
 
 	rv = apr_dir_open(&apr_dir, dirpath, rtc->mem_pool);
@@ -128,10 +130,11 @@ status_code_t xmldb_init(const char *dirpath, runtime_context_t *rtc) {
 		return SC_FAILED;
 	}
 
-	// create storage for databases
-	xmldb_t	*xmldb		= (xmldb_t *)apr_palloc(rtc->mem_pool, sizeof(xmldb_t));
+	// create storage for databases and save it into the runtime context
+	xmldb_t	*xmldb = (xmldb_t *)apr_palloc(rtc->mem_pool, sizeof(xmldb_t));
 	xmldb->count = 0;
 	xmldb->db = apr_hash_make(rtc->mem_pool);
+	rtc->xmldb = xmldb;
 
 	do {
 		// read next file in data directory
@@ -140,7 +143,6 @@ status_code_t xmldb_init(const char *dirpath, runtime_context_t *rtc) {
 		if (rv != APR_ENOENT && apr_strnatcmp(fileinfo.name, ".")
 				&& apr_strnatcmp(fileinfo.name, "..")) {
 
-			// get full file path
 			char *filepath = apr_pstrcat(rtc->mem_pool, dirpath, "/", fileinfo.name, NULL);
 			log_debug("Loading xml database %s ...", filepath);
 
@@ -149,28 +151,27 @@ status_code_t xmldb_init(const char *dirpath, runtime_context_t *rtc) {
 			if (fp_rv == APR_SUCCESS) {
 				xmldb_entry_t *xmldb_entry = NULL;
 
-				status_code_e sc = s_load_xml(&xmldb_entry, apr_file, rtc);
-				if (sc != SC_OK) {
+				if (SC_OK != s_load_xml(&xmldb_entry, apr_file, rtc)) {
 					log_err("Failed to load xml file - %s!", filepath);
 					apr_file_close(apr_file);
 					continue;
 				}
 
-				// put loaded xml database entry into hash
+				// store loaded xml database entry
 				xmldb->count++;
 				apr_hash_set(xmldb->db, xmldb_entry->language, APR_HASH_KEY_STRING, xmldb_entry);
 				apr_file_close(apr_file);
+
 			} else {
 				log_err("Failed to load xml file - %s!", filepath);
 				APR_ERR_PRINT(fp_rv);
-				ret = SC_XMLDB_ERR_FILE;
-				break;
+				//ret = SC_XMLDB_ERR_FILE;
+				continue;
 			}
 		}
 	} while (rv != APR_ENOENT);
 
-	rtc->xmldb = xmldb;
-	if (0 == xmldb->count) {
+	if (xmldb->count == 0) {
 		// no databases were loaded, therefore nothing can be served back
 		ret = SC_XMLDB_ERR_NO_DATABASES;
 	}
