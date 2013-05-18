@@ -1,7 +1,7 @@
 # Eclipse
-.project
-.cproject
-Debug/*
+#.project
+#.cproject
+debug/*
 .settings/*
 
 # CMake
