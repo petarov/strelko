@@ -14,7 +14,7 @@ build/
 *.plist
 
 # App
-ead.conf
+strelko.conf
 
 # Misc
 docs/*.*~
