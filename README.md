@@ -3,6 +3,11 @@
 
 A small-footprint HTTP server.
 
-# License
-This project is under GPL license. Please see the file COPYING.
+# Installation
 
+# Usage
+
+# Development
+
+# License
+This project is under GPL license. Please see the file [COPYING](COPYING)
