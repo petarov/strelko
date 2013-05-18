@@ -124,7 +124,6 @@ add_executable (
 target_link_libraries(strelko_srv ${APR_LIB_NAME} ${APRUTIL_LIB_NAME})
 
 ### prepare build
-set_target_properties(strelko_srv PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
-
+#set_target_properties(strelko_srv PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
 #file(COPY "strelko.conf.dist" DESTINATION "./build")
 #file(RENAME "./build/strelko.conf.dist" "./build/strelko.conf")
