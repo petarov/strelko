@@ -17,7 +17,7 @@
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
 cmake_minimum_required (VERSION 2.6)
-project(ead_server)
+project(strelko)
 
 set(APP_DEBUG ON)
 
@@ -102,7 +102,7 @@ set(
     SOURCES 
     src/bootstrap.c
     src/conf_parser.c
-    src/ead_server.c
+    src/main.c
     src/logger.c
     src/rtc.c
     src/signals.c
@@ -117,14 +117,14 @@ APP_DEBUG_MESSAGE("Sources: ${SOURCES}")
 
 ### Build #################################################################
 add_executable (	
-	ead_server
+	strelko_srv
 	${SOURCES}
 )
 
-target_link_libraries(ead_server ${APR_LIB_NAME} ${APRUTIL_LIB_NAME})
+target_link_libraries(strelko_srv ${APR_LIB_NAME} ${APRUTIL_LIB_NAME})
 
 ### prepare build
-set_target_properties(ead_server PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
+set_target_properties(strelko_srv PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
 
-file(COPY "ead.conf.dist" DESTINATION "./build")
-file(RENAME "./build/ead.conf.dist" "./build/ead.conf")
+file(COPY "strelko.conf.dist" DESTINATION "./build")
+file(RENAME "./build/strelko.conf.dist" "./build/strelko.conf")
