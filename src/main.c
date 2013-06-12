@@ -24,14 +24,8 @@
 
 #include "globals.h"
 #include "bootstrap.h"
-#include "../test/tests.h"
 
 int main(int argc, char* argv[]) {
-
-	if (argc > 1 && !strncmp(argv[1], "test", 4)) {
-		int rv = run_all_test_suits();
-		exit(rv);
-	}
 
 	int rv = bs_init(argc, argv);
 	if (rv == SC_OK) {

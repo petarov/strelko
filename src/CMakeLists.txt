@@ -20,8 +20,7 @@ cmake_minimum_required (VERSION 2.6)
 
 APP_DEBUG_MESSAGE("Building src/ ..." )
 
-set( 
-    SOURCES 
+set(SOURCES 
     bootstrap.c
     conf_parser.c
     main.c
@@ -31,7 +30,6 @@ set(
     utils.c
     httpserver.c
     xmldb.c
-    ../test/tests.c
     ../ext/http-parser/http_parser.c
 )
 
