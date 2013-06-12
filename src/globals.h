@@ -70,6 +70,8 @@ typedef int64_t		int64;
 	log_err("APR ERROR: %s", buf); \
 }
 
+#include "Config.h"
+
 #include "status_codes.h"
 typedef enum status_code_e status_code_t;
 

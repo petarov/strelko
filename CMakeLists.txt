@@ -1,7 +1,7 @@
 #-------------------------------------------------------------------------------
 # CMakeLists.txt
 # 
-#  Copyright (C) 2012  Petar Petrov
+#  Copyright (C) 2013  Petar Petrov
 # 
 #  This program is free software: you can redistribute it and/or modify
 #  it under the terms of the GNU General Public License as published by
@@ -31,30 +31,37 @@ endmacro(APP_DEBUG_MESSAGE _message)
 ### Setup #################################################################
 APP_DEBUG_MESSAGE("Build type is ${CMAKE_BUILD_TYPE}" )
 
-### src
-include_directories(src/)
-include_directories(build/) # Config.h
+### includes
+include_directories(src test ext/http-parser)
 
 # Setup configuration
 
 set (VERSION_MAJ 1)
 set (VERSION_MIN 0)
 
+### configure a header file to pass some of the CMake settings to the source code
+configure_file (
+  "${PROJECT_SOURCE_DIR}/Config.h.in"
+  "${PROJECT_SOURCE_DIR}/src/Config.h"
+  )
+  
 ### requirements
 # PThread
 #find_package(pthread REQUIRED)
 
 # APR lib
-set( APRUTIL_LIB_NAME "libaprutil-1.so" )
-set( APR_LIB_NAME "libapr-1.so" )
+set(APRUTIL_LIB_NAME "libaprutil-1.so")
+set(APR_LIB_NAME "libapr-1.so")
 find_library( 
     APR_LIBRARY
     NAMES ${APR_LIB_NAME}
-    PATHS "/usr/lib/" "/usr/local/lib/"
-)
-if ( NOT APR_LIBRARY )
-      message( FATAL_ERROR "APR library (${APR_LIB_NAME}) not found!" )
-endif ( NOT APR_LIBRARY )
+    PATHS "/usr/lib/" "/usr/local/lib/")
+    
+if (NOT APR_LIBRARY)
+    message( FATAL_ERROR "APR library (${APR_LIB_NAME}) not found!")
+endif (NOT APR_LIBRARY)
+
+include_directories(/usr/include/apr-1)
 
 ### Debug or Release build
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -86,44 +93,6 @@ add_definitions(-std=c99)
 # wtf -> http://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xsh_chap02.html#tag_22_02_02
 add_definitions(-D_XOPEN_SOURCE)
 
-### configure a header file to pass some of the CMake settings to the source code
-configure_file (
-  "${PROJECT_SOURCE_DIR}/Config.h.in"
-  "${PROJECT_BINARY_DIR}/Config.h"
-  )
-
 ### build subdirs
-#add_subdirectory(src)
-APP_DEBUG_MESSAGE("Building src/ ..." )
+add_subdirectory(src)
 
-include_directories(src test ext/http-parser)
-include_directories(/usr/include/apr-1)
-set( 
-    SOURCES 
-    src/bootstrap.c
-    src/conf_parser.c
-    src/main.c
-    src/logger.c
-    src/rtc.c
-    src/signals.c
-    src/utils.c
-    src/httpserver.c
-    src/xmldb.c
-    test/tests.c
-    ext/http-parser/http_parser.c
-)
-
-APP_DEBUG_MESSAGE("Sources: ${SOURCES}")
-
-### Build #################################################################
-add_executable (	
-	strelko_srv
-	${SOURCES}
-)
-
-target_link_libraries(strelko_srv ${APR_LIB_NAME} ${APRUTIL_LIB_NAME})
-
-### prepare build
-#set_target_properties(strelko_srv PROPERTIES RUNTIME_OUTPUT_DIRECTORY "./build")
-#file(COPY "strelko.conf.dist" DESTINATION "./build")
-#file(RENAME "./build/strelko.conf.dist" "./build/strelko.conf")
