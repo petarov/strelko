@@ -198,3 +198,13 @@ int run_all_test_suits() {
 	printf("\n Successful tests: %d/%d \n", tests_run, all_tests);
 	return 0;
 }
+
+/************************ Main *************************************************************/
+
+int main(int argc, char* argv[]) {
+
+	int rv = run_all_test_suits();
+    return rv;
+}
+
+

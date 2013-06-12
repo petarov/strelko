@@ -95,4 +95,5 @@ add_definitions(-D_XOPEN_SOURCE)
 
 ### build subdirs
 add_subdirectory(src)
+add_subdirectory(test)
 
