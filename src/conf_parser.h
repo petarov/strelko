@@ -87,6 +87,11 @@ int conf_init(const conf_optinfo_t const *configs);
 int conf_parse(const char *filename, runtime_context_t *rtc);
 
 /**
+ * Load configurations from command line parameters
+ */
+int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc);
+
+/**
  * Get parsed option
  * @param key Option name
  * @param rtc Initialized runtime context

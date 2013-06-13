@@ -169,8 +169,8 @@ int conf_init(const conf_optinfo_t const *configs) {
 int conf_parse(const char *filename, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(rtc != NULL);
-	apr_file_t *apr_file 	= NULL;
-	int	success				= FALSE;
+	apr_file_t *apr_file = NULL;
+	int	success	= FALSE;
 
 	apr_status_t rv = apr_file_open(&apr_file, filename, APR_FOPEN_READ | APR_FOPEN_BUFFERED,
 			APR_FPROT_OS_DEFAULT, rtc->mem_pool);
@@ -215,6 +215,21 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 		log_err("Failed to load conf file - %s!", filename);
 		APR_ERR_PRINT(rv);
 	}
+
+	return success;
+}
+
+int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
+	TRACE;
+	ASSERT(rtc != NULL);
+	int	success = FALSE;
+
+	int c;
+
+	while((c = getopt(argc, argv, "abc:")) != -1) {
+		// TODO
+	}
+
 
 	return success;
 }

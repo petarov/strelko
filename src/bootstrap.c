@@ -42,19 +42,17 @@ status_code_t bs_init(int argc, char* argv[]) {
 	TRACE;
 
 	int exit_code = SC_OK;
-	char *config_filepath = NULL;
+//	char *config_filepath = NULL;
 
 	/**
 	 * Check command line
 	 */
 	if (argc < 2) {
-		// TODO: try to locate default config in /etc ?
-
 		fprintf(stderr, "Missing command line parameters!\n");
 		exit_code = SC_BS_ERR_CMD;
 		goto error;
-	} else {
-		config_filepath = argv[1];
+//	} else {
+//		config_filepath = argv[1];
 	}
 
 	/*
@@ -89,8 +87,9 @@ status_code_t bs_init(int argc, char* argv[]) {
      * Initialize runtime context and load conf options
      */
     rtc_create(&rtctx);
+
     conf_init(config_options);
-    if (!conf_parse(config_filepath, rtctx)) {
+    if (!conf_parse_arg(argc, argv, rtctx)) {
         exit_code = SC_BS_ERR_CONF;
         goto error;
     }

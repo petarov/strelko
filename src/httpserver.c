@@ -194,4 +194,5 @@ void httpsrv_stop(web_server_t *ws) {
 
 	log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
 	ws->is_running = FALSE;
+	// TODO: block while all threads are stopped?
 }
