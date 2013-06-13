@@ -44,9 +44,14 @@ status_code_t bs_init(int argc, char* argv[]);
 void bs_start();
 
 /**
- * Frees all resources before closing the application
+ * Stop all threads and processes
  */
 void bs_stop();
+
+/**
+ * Destroy acquired resources
+ */
+void bs_destroy();
 
 #ifdef __cplusplus
 }

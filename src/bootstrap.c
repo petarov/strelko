@@ -48,7 +48,9 @@ status_code_t bs_init(int argc, char* argv[]) {
 	 * Check command line
 	 */
 	if (argc < 2) {
-		fprintf(stderr, "Missing configuration file command line param!\n");
+		// TODO: try to locate default config in /etc ?
+
+		fprintf(stderr, "Missing command line parameters!\n");
 		exit_code = SC_BS_ERR_CMD;
 		goto error;
 	} else {
@@ -109,6 +111,10 @@ void bs_stop() {
 	TRACE;
 
 	httpsrv_stop(websrv);
+}
+
+void bs_destroy() {
+	TRACE;
 
 	rtc_destroy(&rtctx);
 	apr_terminate();

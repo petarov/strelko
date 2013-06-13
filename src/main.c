@@ -32,6 +32,7 @@ int main(int argc, char* argv[]) {
 		bs_start();
 		bs_stop();
 	}
+	bs_destroy();
 
     return rv;
 }
