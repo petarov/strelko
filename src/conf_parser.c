@@ -23,7 +23,20 @@
 #include "rtc.h"
 #include "conf_parser.h"
 
+#include <getopt.h>
 #include <apr_lib.h>
+#include <apr_strings.h>
+
+// @see http://www.ibm.com/developerworks/aix/library/au-unix-getopt.html
+static const char *opt_string = "vh:p:?";
+
+static struct option long_options[] = {
+		{ "verbose", no_argument, NULL, 'v' },
+		{ "help", no_argument, NULL, 0 },
+		{ "host", required_argument, NULL, 'h' },
+		{ "port", required_argument, NULL, 'p' },
+		{NULL, 0, NULL, 0}
+};
 
 static const conf_optinfo_t const *configs_template = NULL;
 
@@ -60,6 +73,15 @@ int s_is_opt_optional(const char* key) {
 			return FALSE;
 	}
 	return TRUE;
+}
+
+static void s_opt_add(const char* key, conf_opt_t* opt, runtime_context_t *rtc) {
+	TRACE;
+	ASSERT(key != NULL);
+	if (!rtc->options) {
+		rtc->options = apr_hash_make(rtc->mem_pool);
+	}
+	apr_hash_set(rtc->options, key, APR_HASH_KEY_STRING, opt);
 }
 
 //const conf_optinfo_t* conf_get_optinfo(const char *key) {
@@ -170,7 +192,7 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 			APR_FPROT_OS_DEFAULT, rtc->mem_pool);
 	if (rv == APR_SUCCESS) {
 		char line[CONF_MAX_LINE_SIZE];
-		rtc->options = apr_hash_make(rtc->mem_pool);
+//		rtc->options = apr_hash_make(rtc->mem_pool);
 		success = TRUE;
 
 		while(APR_SUCCESS == apr_file_gets(line, CONF_MAX_LINE_SIZE, apr_file)) {
@@ -191,7 +213,8 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 
 					if (opt != NULL) {
 						log_debug("Parsed option (%s).", key);
-						apr_hash_set(rtc->options, key, APR_HASH_KEY_STRING, opt);
+//						apr_hash_set(rtc->options, key, APR_HASH_KEY_STRING, opt);
+						s_opt_add(key, opt, rtc);
 					} else {
 						log_err("Failed to parse option (%s) !", key);
 						success = FALSE;
@@ -218,12 +241,44 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 	ASSERT(rtc != NULL);
 	int	success = FALSE;
 
-	int c;
+	int next = -1;
+	int opt_idx;
+	conf_opt_t *opt = NULL;
 
-	while((c = getopt(argc, argv, "abc:")) != -1) {
-		// TODO
-	}
+	do {
+		next = getopt_long(argc, argv, opt_string, long_options, &opt_idx);
+		if (next == -1)
+			break;
 
+		switch(next) {
+		// verbose
+		case 'v':
+			break;
+		// help
+		case '?':
+			break;
+		// host
+		case 'h':
+			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+			opt->key = apr_pstrdup(rtc->mem_pool, "host");
+			opt->u.str_val = apr_pstrdup(rtc->mem_pool, optarg);
+			s_opt_add("host", opt, rtc);
+			break;
+		// port
+		case 'p':
+			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+			opt->key = apr_pstrdup(rtc->mem_pool, "port");
+			opt->u.int_val = atoi(optarg);
+			s_opt_add("port", opt, rtc);
+			break;
+		default:
+			// unreachable
+			break;
+		}
+
+	} while (next != -1);
+
+	success = conf_get_opt("host", rtc) && conf_get_opt("port", rtc);
 
 	return success;
 }
