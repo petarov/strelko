@@ -87,6 +87,7 @@ status_code_t bs_init(int argc, char* argv[]) {
         exit_code = SC_BS_ERR_CONF;
         goto error;
     }
+    log_info("Configuration parsed.");
 
 error:
     return exit_code;

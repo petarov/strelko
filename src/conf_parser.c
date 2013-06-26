@@ -22,6 +22,7 @@
 #include "utils.h"
 #include "rtc.h"
 #include "conf_parser.h"
+#include "confs.h"
 
 #include <getopt.h>
 #include <apr_lib.h>
@@ -260,16 +261,16 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 		// host
 		case 'h':
 			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
-			opt->key = apr_pstrdup(rtc->mem_pool, "host");
+			opt->key = apr_pstrdup(rtc->mem_pool, CF_LISTEN_ADDRESS);
 			opt->u.str_val = apr_pstrdup(rtc->mem_pool, optarg);
-			s_opt_add("host", opt, rtc);
+			s_opt_add(CF_LISTEN_ADDRESS, opt, rtc);
 			break;
 		// port
 		case 'p':
 			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
-			opt->key = apr_pstrdup(rtc->mem_pool, "port");
+			opt->key = apr_pstrdup(rtc->mem_pool, CF_LISTEN_PORT);
 			opt->u.int_val = atoi(optarg);
-			s_opt_add("port", opt, rtc);
+			s_opt_add(CF_LISTEN_PORT, opt, rtc);
 			break;
 		default:
 			// unreachable
@@ -278,7 +279,7 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 
 	} while (next != -1);
 
-	success = conf_get_opt("host", rtc) && conf_get_opt("port", rtc);
+	success = conf_get_opt(CF_LISTEN_ADDRESS, rtc) && conf_get_opt(CF_LISTEN_PORT, rtc);
 
 	return success;
 }
