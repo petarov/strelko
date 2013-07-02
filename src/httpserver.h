@@ -31,6 +31,31 @@ struct web_server_t {
 };
 typedef struct web_server_t web_server_t;
 
+struct web_client_t {
+	apr_socket_t *sock;
+	int connected;
+};
+typedef struct web_client_t web_client_t;
+
+/**
+ * Thread pool control structure that manages a queue of created threads.
+ */
+struct thread_pool_t {
+	web_client_t *head;	// queue head
+	web_client_t *tail;	// queue tail
+	int size;	// size of items in queue
+	int num_active;	// size of occupied threads
+	pthread_t *threads;
+	pthread_mutex_t tlock;
+	int stop;
+};
+typedef struct thread_pool_t thread_pool_t;
+
+/**
+ * Client thread pool limit
+ */
+#define MAX_CLIENTS_IN_POOL 100
+
 /**
  * Creates a webserver configuration instance
  * @param ws Non-initialized web_server_t structure
