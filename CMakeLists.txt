@@ -47,7 +47,7 @@ configure_file (
   
 ### requirements
 # PThread
-#find_package(pthread REQUIRED)
+find_package(Threads REQUIRED)
 
 # APR lib
 set(APRUTIL_LIB_NAME "libaprutil-1.so")
