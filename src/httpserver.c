@@ -35,10 +35,12 @@ static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
 
     log_debug("Starting http server on %s:%d", ws->hostname, ws->port);
 
-    if (APR_SUCCESS != (rv = apr_sockaddr_info_get(&sa, NULL, APR_INET, ws->port, 0, mp)))
+    if (APR_SUCCESS != (rv = apr_sockaddr_info_get(&sa, NULL, APR_INET,
+    		ws->port, 0, mp)))
     	goto error;
 
-    if (APR_SUCCESS != (rv = apr_socket_create(&s, sa->family, SOCK_STREAM, APR_PROTO_TCP, mp)))
+    if (APR_SUCCESS != (rv = apr_socket_create(&s, sa->family, SOCK_STREAM,
+    		APR_PROTO_TCP, mp)))
     	goto error;
 
     /* it is a good idea to specify socket options explicitly.
@@ -133,6 +135,20 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
     }
 }
 
+static s_process_client(void *clientptr) {
+	TRACE;
+	ASSERT(clientptr != NULL);
+
+	web_client_t *client = (web_client_t *) clientptr;
+	if (!s_process_packet(client->sock, client->rtc->mem_pool)) {
+		log_err("Failed to serve client!");
+		//goto error;
+	}
+	apr_socket_close(client->sock);
+
+	pthread_exit(0);
+}
+
 status_code_t httpsrv_create(web_server_t **ws, runtime_context_t *rtc) {
 	TRACE;
 
@@ -172,11 +188,17 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 		apr_socket_opt_set(client_sock, APR_SO_NONBLOCK, 0);
 		apr_socket_timeout_set(client_sock, -1);
 
-		if (!s_process_packet(client_sock, mp)) {
-			log_err("Failed to serve client!");
-			//goto error;
-		}
-		apr_socket_close(client_sock);
+		web_client_t *client = (web_client_t *)apr_palloc(rtc->mem_pool,
+				sizeof(web_client_t));
+		client->sock = client_sock;
+		client->connected = TRUE;
+		client->rtc = rtc;
+
+		int rc = pthread_create(&client->thread, NULL,
+				(void *)s_process_client, (void *)client);
+
+		// TODO: remove
+		pthread_join(client->thread, NULL);
 	}
 
 	return SC_OK;

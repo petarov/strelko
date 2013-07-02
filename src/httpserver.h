@@ -32,8 +32,10 @@ struct web_server_t {
 typedef struct web_server_t web_server_t;
 
 struct web_client_t {
+	pthread_t thread; // TODO: remove
 	apr_socket_t *sock;
 	int connected;
+	runtime_context_t *rtc;
 };
 typedef struct web_client_t web_client_t;
 
