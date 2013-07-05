@@ -16,7 +16,7 @@
 #  You should have received a copy of the GNU General Public License
 #  along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #-------------------------------------------------------------------------------
-cmake_minimum_required (VERSION 2.6)
+cmake_minimum_required (VERSION 2.8)
 project(strelko)
 
 set(APP_DEBUG ON)
@@ -50,16 +50,21 @@ configure_file (
 find_package(Threads REQUIRED)
 
 # APR lib
-set(APRUTIL_LIB_NAME "libaprutil-1.so")
-set(APR_LIB_NAME "libapr-1.so")
+
+if (UNIX AND NOT WIN32)
+    set(APRUTIL_LIB_NAME "libaprutil-1.so")
+    set(APR_LIB_NAME "libapr-1.so")
+endif()
+
 find_library( 
     APR_LIBRARY
     NAMES ${APR_LIB_NAME}
-    PATHS "/usr/lib/" "/usr/local/lib/")
+    PATHS "/usr/lib/" "/usr/local/lib/" 
+    HINTS ${CYGWIN_LIBS})
     
 if (NOT APR_LIBRARY)
-    message( FATAL_ERROR "APR library (${APR_LIB_NAME}) not found!")
-endif (NOT APR_LIBRARY)
+    message( FATAL_ERROR "APR library (${APR_LIB_NAME}) not found! ${CYGWIN_LIBS}")
+endif()
 
 include_directories(/usr/include/apr-1)
 
@@ -69,9 +74,9 @@ if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_definitions(-Wall)
     add_definitions(-D_DEBUG)
     add_definitions(-DDEBUG)
-else (CMAKE_BUILD_TYPE STREQUAL "Debug")
+else()
     add_definitions(-O3 -DNDEBUG)
-endif (CMAKE_BUILD_TYPE STREQUAL "Debug")
+endif()
 
 if (UNIX AND NOT WIN32)
     add_definitions(-DLINUX_BUILD)
@@ -79,11 +84,11 @@ if (UNIX AND NOT WIN32)
     if (CMAKE_SIZEOF_VOID_P MATCHES "8")
     	set(CPU_ARCH 64)
 		add_definitions(-DARCH_X64)
-    else (CMAKE_SIZEOF_VOID_P MATCHES "8")
+    else()
 		add_definitions(-DARCH_X86)
 		set(CPU_ARCH 86)
-    endif (CMAKE_SIZEOF_VOID_P MATCHES "8")
-endif (UNIX AND NOT WIN32)
+    endif()
+endif()
 
 add_definitions(-D_LARGEFILE_SOURCE=1)
 add_definitions(-D_LARGEFILE64_SOURCE)
