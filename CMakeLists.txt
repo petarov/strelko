@@ -50,23 +50,25 @@ configure_file (
 find_package(Threads REQUIRED)
 
 # APR lib
-
 if (UNIX AND NOT WIN32)
+    include_directories(/usr/include/apr-1)
     set(APRUTIL_LIB_NAME "libaprutil-1.so")
     set(APR_LIB_NAME "libapr-1.so")
+else()
+    include_directories(${CYGWIN_PATH}/usr/include/apr-1)
+    set(APRUTIL_LIB_NAME "libaprutil-1.a")
+    set(APR_LIB_NAME "libapr-1.a")
 endif()
 
 find_library( 
     APR_LIBRARY
     NAMES ${APR_LIB_NAME}
     PATHS "/usr/lib/" "/usr/local/lib/" 
-    HINTS ${CYGWIN_LIBS})
+    HINTS "${CYGWIN_PATH}/lib")
     
 if (NOT APR_LIBRARY)
     message( FATAL_ERROR "APR library (${APR_LIB_NAME}) not found! ${CYGWIN_LIBS}")
 endif()
-
-include_directories(/usr/include/apr-1)
 
 ### Debug or Release build
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
@@ -93,7 +95,7 @@ endif()
 add_definitions(-D_LARGEFILE_SOURCE=1)
 add_definitions(-D_LARGEFILE64_SOURCE)
 add_definitions(-D_FILE_OFFSET_BITS=64)
-# We compile in C99 mode
+# compile in C99 mode
 add_definitions(-std=c99)
 # wtf -> http://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xsh_chap02.html#tag_22_02_02
 add_definitions(-D_XOPEN_SOURCE)
@@ -101,4 +103,3 @@ add_definitions(-D_XOPEN_SOURCE)
 ### build subdirs
 add_subdirectory(src)
 add_subdirectory(test)
-
