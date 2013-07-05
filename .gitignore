@@ -2,6 +2,7 @@
 #.project
 #.cproject
 debug/*
+Debug/*
 .settings/*
 
 # CMake
