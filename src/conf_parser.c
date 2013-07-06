@@ -25,6 +25,7 @@
 #include "confs.h"
 
 #include <getopt.h>
+#include <dirent.h>
 #include <apr_lib.h>
 #include <apr_strings.h>
 
@@ -286,7 +287,9 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 
 	} while (next != -1);
 
-	// set defaults
+	/*
+	 * Set Default options
+	 */
 
 	if (!conf_get_opt(CF_DOCUMENT_ROOT, rtc)) {
 		char cwd[1024];
@@ -303,8 +306,19 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 		s_opt_add(CF_DOCUMENT_ROOT, opt, rtc);
 	}
 
-	log_info("Document root is %s",
-			conf_get_opt(CF_DOCUMENT_ROOT, rtc)->u.str_val);
+	char *docroot = conf_get_opt(CF_DOCUMENT_ROOT, rtc)->u.str_val;
+	DIR *dir = opendir(docroot);
+	if (!dir) {
+		if (ENOENT == errno) {
+			log_err("Document root directory (%s) does not exist!", docroot);
+		} else {
+			log_err("opendir failed(%d)!", errno);
+		}
+		return FALSE;
+	}
+	closedir(dir);
+
+	log_info("Document root is %s", docroot);
 
 	success = conf_get_opt(CF_LISTEN_ADDRESS, rtc) && conf_get_opt(CF_LISTEN_PORT, rtc);
 	return success;
