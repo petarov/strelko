@@ -25,5 +25,6 @@
  */
 #define CF_LISTEN_ADDRESS 		"listen_address"
 #define CF_LISTEN_PORT			"listen_port"
+#define CF_DOCUMENT_ROOT 		"document_root"
 
 #endif /* CONFS_H_ */

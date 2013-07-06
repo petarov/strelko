@@ -29,13 +29,14 @@
 #include <apr_strings.h>
 
 // @see http://www.ibm.com/developerworks/aix/library/au-unix-getopt.html
-static const char *opt_string = "vh:p:?";
+static const char *opt_string = "vh:p:r:?";
 
 static struct option long_options[] = {
 		{ "verbose", no_argument, NULL, 'v' },
 		{ "help", no_argument, NULL, 0 },
 		{ "host", required_argument, NULL, 'h' },
 		{ "port", required_argument, NULL, 'p' },
+		{ "root", required_argument, NULL, 'r' },
 		{NULL, 0, NULL, 0}
 };
 
@@ -272,6 +273,12 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 			opt->u.int_val = atoi(optarg);
 			s_opt_add(CF_LISTEN_PORT, opt, rtc);
 			break;
+		case 'r':
+			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+			opt->key = apr_pstrdup(rtc->mem_pool, CF_DOCUMENT_ROOT);
+			opt->u.str_val = apr_pstrdup(rtc->mem_pool, optarg);
+			s_opt_add(CF_DOCUMENT_ROOT, opt, rtc);
+			break;
 		default:
 			// unreachable
 			break;
@@ -279,8 +286,27 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 
 	} while (next != -1);
 
-	success = conf_get_opt(CF_LISTEN_ADDRESS, rtc) && conf_get_opt(CF_LISTEN_PORT, rtc);
+	// set defaults
 
+	if (!conf_get_opt(CF_DOCUMENT_ROOT, rtc)) {
+		char cwd[1024];
+		if (getcwd(cwd, sizeof(cwd)) == NULL) {
+			log_err("getcwd failed(%d)!", errno);
+			return FALSE;
+
+			// TODO: respect ERANGE return code
+		}
+
+		opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+		opt->key = apr_pstrdup(rtc->mem_pool, CF_DOCUMENT_ROOT);
+		opt->u.str_val = apr_pstrdup(rtc->mem_pool, cwd);
+		s_opt_add(CF_DOCUMENT_ROOT, opt, rtc);
+	}
+
+	log_info("Document root is %s",
+			conf_get_opt(CF_DOCUMENT_ROOT, rtc)->u.str_val);
+
+	success = conf_get_opt(CF_LISTEN_ADDRESS, rtc) && conf_get_opt(CF_LISTEN_PORT, rtc);
 	return success;
 }
 
