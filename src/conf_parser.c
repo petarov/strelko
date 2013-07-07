@@ -97,6 +97,33 @@ static void s_opt_add(const char* key, conf_opt_t* opt, runtime_context_t *rtc) 
 //	return NULL;
 //}
 
+void s_opt_addnew(const char *key, const char *value, conf_opttype_e type,
+		runtime_context_t *rtc) {
+	TRACE;
+	ASSERT(key != NULL);
+	ASSERT(value != NULL);
+
+	conf_opt_t *opt = (conf_opt_t *) apr_pcalloc(rtc->mem_pool,
+			sizeof(conf_opt_t));
+	opt->key = apr_pstrdup(rtc->mem_pool, key);
+
+	// now check if the value is of the expected type
+	switch(type) {
+	case CT_INT:
+		opt->u.int_val = strtol(value, (char **)NULL, 10);
+		break;
+	case CT_BOOL:
+		opt->u.bool_val = utils_tobool(value);
+		break;
+	case CT_STRING:
+	default:
+		opt->u.str_val = apr_pstrdup(rtc->mem_pool, value);
+		break;
+	}
+
+	s_opt_add(key, opt, rtc);
+}
+
 /**
  * Parse configuration option
  * @param key
@@ -262,23 +289,14 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 			break;
 		// host
 		case 'h':
-			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
-			opt->key = apr_pstrdup(rtc->mem_pool, CF_LISTEN_ADDRESS);
-			opt->u.str_val = apr_pstrdup(rtc->mem_pool, optarg);
-			s_opt_add(CF_LISTEN_ADDRESS, opt, rtc);
+			s_opt_addnew(CF_LISTEN_ADDRESS, optarg, CT_STRING, rtc);
 			break;
 		// port
 		case 'p':
-			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
-			opt->key = apr_pstrdup(rtc->mem_pool, CF_LISTEN_PORT);
-			opt->u.int_val = atoi(optarg);
-			s_opt_add(CF_LISTEN_PORT, opt, rtc);
+			s_opt_addnew(CF_LISTEN_PORT, optarg, CT_INT, rtc);
 			break;
 		case 'r':
-			opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
-			opt->key = apr_pstrdup(rtc->mem_pool, CF_DOCUMENT_ROOT);
-			opt->u.str_val = apr_pstrdup(rtc->mem_pool, optarg);
-			s_opt_add(CF_DOCUMENT_ROOT, opt, rtc);
+			s_opt_addnew(CF_DOCUMENT_ROOT, optarg, CT_STRING, rtc);
 			break;
 		default:
 			// unreachable
@@ -300,10 +318,7 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 			// TODO: respect ERANGE return code
 		}
 
-		opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
-		opt->key = apr_pstrdup(rtc->mem_pool, CF_DOCUMENT_ROOT);
-		opt->u.str_val = apr_pstrdup(rtc->mem_pool, cwd);
-		s_opt_add(CF_DOCUMENT_ROOT, opt, rtc);
+		s_opt_addnew(CF_DOCUMENT_ROOT, cwd, CT_STRING, rtc);
 	}
 
 	char *docroot = conf_get_opt(CF_DOCUMENT_ROOT, rtc)->u.str_val;
