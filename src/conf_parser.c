@@ -340,6 +340,6 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 
 const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc) {
 	conf_opt_t *opt = apr_hash_get(rtc->options, key, APR_HASH_KEY_STRING);
-	ASSERT(opt != NULL);
+//	ASSERT(opt != NULL);
 	return opt;
 }
