@@ -269,11 +269,10 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(rtc != NULL);
-	int	success = FALSE;
 
+	int	success = FALSE;
 	int next = -1;
 	int opt_idx;
-	conf_opt_t *opt = NULL;
 
 	do {
 		next = getopt_long(argc, argv, opt_string, long_options, &opt_idx);
