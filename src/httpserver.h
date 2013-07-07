@@ -23,6 +23,8 @@
 extern "C" {
 #endif
 
+#include "http.h"
+
 struct web_server_t {
 	char *hostname;
 	int port;
@@ -35,6 +37,7 @@ struct web_client_t {
 	pthread_t thread; // TODO: remove
 	apr_socket_t *sock;
 	int connected;
+	http_request_t *req;
 	runtime_context_t *rtc;
 };
 typedef struct web_client_t web_client_t;

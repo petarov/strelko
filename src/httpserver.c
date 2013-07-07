@@ -20,7 +20,6 @@
 #include "globals.h"
 #include "logger.h"
 #include "conf_parser.h"
-#include "http.h"
 #include "httpserver.h"
 #include "http_parser.h"
 
@@ -63,84 +62,23 @@ error:
     return rv;
 }
 
-static int http_header_cb(http_parser *parser, const char *at, size_t length) {
-	printf("HDR: %s", at);
+static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
+	web_client_t *client = (web_client_t *) parser->data;
+	client->req->uri = apr_pstrdup(client->rtc->mem_pool, p);
+
+	//TODO: split CRLF
+	log_debug("URI: %s", client->req->uri);
 	return 0;
 }
 
-static int http_body_cb(http_parser *parser, const char *at, size_t length) {
-	printf("BODY: %s", at);
+static int http_header_cb(http_parser *parser, const char *p, size_t length) {
+//	printf("HDR: %s", p);
 	return 0;
 }
 
-static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
-	TRACE;
-
-	char buf[BUFSIZE];
-	http_parser_settings settings;
-	settings.on_header_field = http_header_cb;
-	settings.on_header_value = http_header_cb;
-	settings.on_body = http_body_cb;
-
-	http_parser *parser = apr_palloc(mp, sizeof(http_parser));
-
-	http_parser_init(parser, HTTP_REQUEST);
-
-	while (1) {
-		apr_size_t recv_len = sizeof(buf) - 1; // -1 for a null-terminated
-		apr_status_t rv = apr_socket_recv(sock, buf, &recv_len);
-		if (rv == APR_EOF || recv_len == 0)
-			break;
-
-		// null-terminate the string buffer
-		buf[recv_len] = '\0';
-		apr_size_t parsed_len = http_parser_execute(
-				parser, &settings, buf, recv_len);
-
-		if (parsed_len != recv_len) {
-			log_err("Request failed! Parsed length=%d, recieved=%d",
-					parsed_len, recv_len);
-			break;
-		}
-
-		// TODO client struct needed ?!
-		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
-			break;
-		}
-    }
-
-//    if (filepath) {
-//        apr_status_t rv;
-//        apr_file_t *fp;
-//
-//        if ((rv = apr_file_open(&fp, filepath, APR_READ, APR_OS_DEFAULT, mp)) == APR_SUCCESS) {
-//            const char *resp_hdr;
-//            apr_size_t len;
-//            const char *resp_body;
-//
-//            apr_finfo_t finfo;
-//            apr_file_info_get(&finfo, APR_FINFO_SIZE, fp);
-//
-//            resp_hdr = apr_psprintf(mp, "HTTP/1.0 200 OK" CRLF_STR "Content-Length: %" APR_OFF_T_FMT CRLF_STR CRLF_STR, finfo.size);
-//            len = strlen(resp_hdr);
-//            apr_socket_send(sock, resp_hdr, &len);
-//
-//            resp_body = apr_palloc(mp, finfo.size);
-//            len = finfo.size;
-//            apr_file_read(fp, (void*)resp_body, &len);
-//            apr_socket_send(sock, resp_body, &len);
-//
-//            return TRUE;
-//        }
-//    }
-
-    /* error case */
-    {
-        const char *resp_hdr = "HTTP/1.0 404 Not Found" HTTP_CRLF HTTP_CRLF;
-        apr_size_t len = strlen(resp_hdr);
-        apr_socket_send(sock, resp_hdr, &len);
-        return TRUE;
-    }
+static int http_body_cb(http_parser *parser, const char *p, size_t length) {
+	printf("BODY: %s", p);
+	return 0;
 }
 
 static void s_process_client(void *clientptr) {
@@ -150,10 +88,16 @@ static void s_process_client(void *clientptr) {
 	web_client_t *client = (web_client_t *) clientptr;
 	ASSERT(client != NULL);
 
+	http_request_t *req = (http_request_t *) apr_palloc(client->rtc->mem_pool,
+			sizeof(http_request_t));
+	ASSERT(req != NULL);
+	client->req = req;
+
 	char buf[BUFSIZE];
 	http_parser_settings settings;
 	settings.on_header_field = http_header_cb;
 	settings.on_header_value = http_header_cb;
+	settings.on_url = request_uri_cb;
 	settings.on_body = http_body_cb;
 
 	http_parser *parser = apr_palloc(client->rtc->mem_pool,
@@ -162,9 +106,6 @@ static void s_process_client(void *clientptr) {
 	http_parser_init(parser, HTTP_REQUEST);
 
 	int server_err = FALSE;
-
-	log_info("Start client thread!");
-
 	while (1) {
 		apr_size_t recv_len = sizeof(buf) - 1; // -1 for a null-terminated
 		apr_status_t rv = apr_socket_recv(client->sock, buf, &recv_len);
@@ -194,7 +135,32 @@ static void s_process_client(void *clientptr) {
 		}
 	}
 
-	log_info("Finished client thread!");
+	log_debug("Locating resource %s", client->req->uri);
+
+	//    if (filepath) {
+	//        apr_status_t rv;
+	//        apr_file_t *fp;
+	//
+	//        if ((rv = apr_file_open(&fp, filepath, APR_READ, APR_OS_DEFAULT, mp)) == APR_SUCCESS) {
+	//            const char *resp_hdr;
+	//            apr_size_t len;
+	//            const char *resp_body;
+	//
+	//            apr_finfo_t finfo;
+	//            apr_file_info_get(&finfo, APR_FINFO_SIZE, fp);
+	//
+	//            resp_hdr = apr_psprintf(mp, "HTTP/1.0 200 OK" CRLF_STR "Content-Length: %" APR_OFF_T_FMT CRLF_STR CRLF_STR, finfo.size);
+	//            len = strlen(resp_hdr);
+	//            apr_socket_send(sock, resp_hdr, &len);
+	//
+	//            resp_body = apr_palloc(mp, finfo.size);
+	//            len = finfo.size;
+	//            apr_file_read(fp, (void*)resp_body, &len);
+	//            apr_socket_send(sock, resp_body, &len);
+	//
+	//            return TRUE;
+	//        }
+	//    }
 
 	if (server_err) {
 		const char *resp_hdr = "HTTP/1.0 500 Internal Server Error" \
@@ -210,7 +176,8 @@ static void s_process_client(void *clientptr) {
 status_code_t httpsrv_create(web_server_t **ws, runtime_context_t *rtc) {
 	TRACE;
 
-	web_server_t *websrv = (web_server_t *)apr_palloc(rtc->mem_pool, sizeof(web_server_t));
+	web_server_t *websrv = (web_server_t *)apr_palloc(rtc->mem_pool,
+			sizeof(web_server_t));
 	websrv->hostname = apr_pstrdup(rtc->mem_pool, CF_STR(CF_LISTEN_ADDRESS));
 	websrv->port = CF_INT(CF_LISTEN_PORT);
 
@@ -264,9 +231,10 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 
 void httpsrv_stop(web_server_t *ws) {
 	TRACE;
-	ASSERT(ws != NULL);
-
-	log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
-	ws->is_running = FALSE;
-	// TODO: block while all threads are stopped?
+//	ASSERT(ws != NULL);
+	if (ws != NULL) {
+		log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
+		ws->is_running = FALSE;
+		// TODO: block while all threads are stopped?
+	}
 }
