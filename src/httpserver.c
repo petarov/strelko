@@ -83,17 +83,25 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
 	settings.on_body = http_body_cb;
 
 	http_parser *parser = apr_palloc(mp, sizeof(http_parser));
+
 	http_parser_init(parser, HTTP_REQUEST);
 
 	while (1) {
-		apr_size_t len = sizeof(buf) - 1; // -1 for a null-terminated
-		apr_status_t rv = apr_socket_recv(sock, buf, &len);
-		if (rv == APR_EOF || len == 0)
+		apr_size_t recv_len = sizeof(buf) - 1; // -1 for a null-terminated
+		apr_status_t rv = apr_socket_recv(sock, buf, &recv_len);
+		if (rv == APR_EOF || recv_len == 0)
 			break;
 
 		// null-terminate the string buffer
-		buf[len] = '\0';
-		http_parser_execute(parser, &settings, buf, len);
+		buf[recv_len] = '\0';
+		apr_size_t parsed_len = http_parser_execute(
+				parser, &settings, buf, recv_len);
+
+		if (parsed_len != recv_len) {
+			log_err("Request failed! Parsed length=%d, recieved=%d",
+					parsed_len, recv_len);
+			break;
+		}
 
 		// TODO client struct needed ?!
 		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
@@ -135,17 +143,67 @@ static int s_process_packet(apr_socket_t *sock, apr_pool_t *mp) {
     }
 }
 
-static s_process_client(void *clientptr) {
+static void s_process_client(void *clientptr) {
 	TRACE;
 	ASSERT(clientptr != NULL);
 
 	web_client_t *client = (web_client_t *) clientptr;
-	if (!s_process_packet(client->sock, client->rtc->mem_pool)) {
-		log_err("Failed to serve client!");
-		//goto error;
-	}
-	apr_socket_close(client->sock);
+	ASSERT(client != NULL);
 
+	char buf[BUFSIZE];
+	http_parser_settings settings;
+	settings.on_header_field = http_header_cb;
+	settings.on_header_value = http_header_cb;
+	settings.on_body = http_body_cb;
+
+	http_parser *parser = apr_palloc(client->rtc->mem_pool,
+			sizeof(http_parser));
+	parser->data = clientptr;
+	http_parser_init(parser, HTTP_REQUEST);
+
+	int server_err = FALSE;
+
+	log_info("Start client thread!");
+
+	while (1) {
+		apr_size_t recv_len = sizeof(buf) - 1; // -1 for a null-terminated
+		apr_status_t rv = apr_socket_recv(client->sock, buf, &recv_len);
+		if (rv == APR_EOF || recv_len == 0)
+			break;
+
+		// null-terminate the string buffer
+		buf[recv_len] = '\0';
+		apr_size_t parsed_len = http_parser_execute(
+				parser, &settings, buf, recv_len);
+
+		if (parsed_len != recv_len) {
+			log_err("Request failed! Parsed length=%d, recieved=%d",
+					parsed_len, recv_len);
+			server_err = TRUE;
+			break;
+		}
+
+		/*
+		 * The request line and headers must all end with <CR><LF>
+		 * Note that this is a nasty hack! Improper GET requests would
+		 * block the thread as the while(1) loop will continue forever because
+		 * the socket_recv will keep blocking - waiting for more data.
+		 */
+		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
+			break;
+		}
+	}
+
+	log_info("Finished client thread!");
+
+	if (server_err) {
+		const char *resp_hdr = "HTTP/1.0 500 Internal Server Error" \
+				HTTP_CRLF HTTP_CRLF;
+		apr_size_t len = strlen(resp_hdr);
+		apr_socket_send(client->sock, resp_hdr, &len);
+	}
+
+	apr_socket_close(client->sock);
 	pthread_exit(0);
 }
 
