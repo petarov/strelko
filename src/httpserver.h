@@ -25,6 +25,7 @@ extern "C" {
 
 #include "http.h"
 
+
 struct web_server_t {
 	char *hostname;
 	int port;
@@ -40,6 +41,12 @@ struct web_client_t {
 	int done;
 	http_request_t *req;
 	runtime_context_t *rtc;
+	/*
+	 * Each client should maintain it's own memory pool.
+	 * When request is parsed and served the pool will be destroyed.
+	 * Thus, freeing all request allocated memory.
+	 */
+	apr_pool_t *mem_pool;
 };
 typedef struct web_client_t web_client_t;
 

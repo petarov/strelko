@@ -119,8 +119,7 @@ static void s_process_client(void *clientptr) {
 	settings.on_body = http_body_cb;
 	settings.on_message_complete = http_message_complete_cb;
 
-	http_parser *parser = apr_palloc(client->rtc->mem_pool,
-			sizeof(http_parser));
+	http_parser *parser = apr_palloc(client->mem_pool, sizeof(http_parser));
 	parser->data = clientptr;
 	http_parser_init(parser, HTTP_REQUEST);
 
@@ -189,6 +188,11 @@ static void s_process_client(void *clientptr) {
 	}
 
 	apr_socket_close(client->sock);
+	/*
+	 * Destroy memory pool and sub-pools
+	 */
+	apr_pool_destroy(client->mem_pool);
+
 	pthread_exit(0);
 }
 
@@ -233,14 +237,16 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 		apr_socket_opt_set(client_sock, APR_SO_NONBLOCK, 0);
 		apr_socket_timeout_set(client_sock, -1);
 
+		// create new client
 		web_client_t *client = (web_client_t *)apr_palloc(rtc->mem_pool,
 				sizeof(web_client_t));
 		client->sock = client_sock;
 		client->connected = TRUE;
 		client->done = FALSE;
 		client->rtc = rtc;
-		client->req = (http_request_t *) apr_palloc(client->rtc->mem_pool,
-				sizeof(http_request_t));
+
+		apr_pool_create(&(client->mem_pool), NULL);
+		http_create(&client->req, client->mem_pool);
 
 		int rc = pthread_create(&client->thread, NULL,
 				(void *)s_process_client, (void *)client);

@@ -20,6 +20,11 @@
 #ifndef HTTP_H_
 #define HTTP_H_
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
 /*
  * HTTP messages consist of requests from client to server and responses from server to client.
  * HTTP-message   = Request | Response     ; HTTP/1.1 messages
@@ -47,7 +52,7 @@ struct http_request_t {
 	const char *content_type;
 	long content_len;
 
-
+	apr_pool_t *mem_pool;
 };
 typedef struct http_request_t http_request_t;
 
@@ -57,5 +62,12 @@ typedef struct http_request_t http_request_t;
 #define HTTP_METHOD_POST	"POST"
 #define HTTP_METHOD_PUT		"PUT"
 #define HTTP_METHOD_DELETE	"DELETE"
+
+status_code_t http_create(http_request_t **http, apr_pool_t *parent_pool);
+void http_destory(http_request_t *http);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* HTTP_H_ */
