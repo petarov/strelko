@@ -71,34 +71,39 @@ static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
 	return 0;
 }
 
-static int http_header_cb(http_parser *parser, const char *p, size_t length) {
+static int http_header_field_cb(http_parser *parser, const char *p, size_t length) {
+//	printf("HDR: %s", p);
+	return 0;
+}
+
+static int http_header_value_cb(http_parser *parser, const char *p, size_t length) {
 //	printf("HDR: %s", p);
 	return 0;
 }
 
 static int http_body_cb(http_parser *parser, const char *p, size_t length) {
-	printf("BODY: %s", p);
+//	printf("BODY: %s", p);
+	return 0;
+}
+
+static int http_message_complete_cb(http_parser *parser) {
+	web_client_t *client = (web_client_t *) parser->data;
+	client->done = TRUE;
 	return 0;
 }
 
 static void s_process_client(void *clientptr) {
 	TRACE;
 	ASSERT(clientptr != NULL);
-
 	web_client_t *client = (web_client_t *) clientptr;
-	ASSERT(client != NULL);
-
-	http_request_t *req = (http_request_t *) apr_palloc(client->rtc->mem_pool,
-			sizeof(http_request_t));
-	ASSERT(req != NULL);
-	client->req = req;
 
 	char buf[BUFSIZE];
 	http_parser_settings settings;
-	settings.on_header_field = http_header_cb;
-	settings.on_header_value = http_header_cb;
+	settings.on_header_field = http_header_field_cb;
+	settings.on_header_value = http_header_value_cb;
 	settings.on_url = request_uri_cb;
 	settings.on_body = http_body_cb;
+	settings.on_message_complete = http_message_complete_cb;
 
 	http_parser *parser = apr_palloc(client->rtc->mem_pool,
 			sizeof(http_parser));
@@ -106,7 +111,7 @@ static void s_process_client(void *clientptr) {
 	http_parser_init(parser, HTTP_REQUEST);
 
 	int server_err = FALSE;
-	while (1) {
+	while (!client->done) {
 		apr_size_t recv_len = sizeof(buf) - 1; // -1 for a null-terminated
 		apr_status_t rv = apr_socket_recv(client->sock, buf, &recv_len);
 		if (rv == APR_EOF || recv_len == 0)
@@ -207,6 +212,7 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 			// just notify
 			log_err("Client socket failed !");
 //			goto error;
+			continue;
 		}
 
 		// specify client socket options
@@ -217,7 +223,10 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 				sizeof(web_client_t));
 		client->sock = client_sock;
 		client->connected = TRUE;
+		client->done = FALSE;
 		client->rtc = rtc;
+		client->req = (http_request_t *) apr_palloc(client->rtc->mem_pool,
+				sizeof(http_request_t));
 
 		int rc = pthread_create(&client->thread, NULL,
 				(void *)s_process_client, (void *)client);

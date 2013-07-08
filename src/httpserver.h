@@ -37,6 +37,7 @@ struct web_client_t {
 	pthread_t thread; // TODO: remove
 	apr_socket_t *sock;
 	int connected;
+	int done;
 	http_request_t *req;
 	runtime_context_t *rtc;
 };
