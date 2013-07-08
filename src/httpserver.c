@@ -245,7 +245,7 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 		client->done = FALSE;
 		client->rtc = rtc;
 
-		apr_pool_create(&(client->mem_pool), NULL);
+		apr_pool_create(&(client->mem_pool), rtc->mem_pool);
 		http_create(&client->req, client->mem_pool);
 
 		int rc = pthread_create(&client->thread, NULL,
