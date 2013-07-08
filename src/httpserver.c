@@ -66,6 +66,8 @@ static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
 	web_client_t *client = (web_client_t *) parser->data;
 	client->req->uri = apr_pstrdup(client->rtc->mem_pool, p);
 
+	//TODO: add to url data
+
 	//TODO: split CRLF
 	log_debug("URI: %s", client->req->uri);
 	return 0;
@@ -73,22 +75,33 @@ static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
 
 static int http_header_field_cb(http_parser *parser, const char *p, size_t length) {
 //	printf("HDR: %s", p);
+	// TODO: save last header key/val
+	// TODO: add to new header key
 	return 0;
 }
 
 static int http_header_value_cb(http_parser *parser, const char *p, size_t length) {
 //	printf("HDR: %s", p);
+	// TODO: save to current hdr value
+	// TODO: set flag that we have value
+	return 0;
+}
+
+static int http_header_done_cb(http_parser *parser) {
+	// TODO: save last header key/val
 	return 0;
 }
 
 static int http_body_cb(http_parser *parser, const char *p, size_t length) {
 //	printf("BODY: %s", p);
+	// TODO: add to body data
 	return 0;
 }
 
 static int http_message_complete_cb(http_parser *parser) {
 	web_client_t *client = (web_client_t *) parser->data;
 	client->done = TRUE;
+	// TODO: finalize request parsing
 	return 0;
 }
 
@@ -101,6 +114,7 @@ static void s_process_client(void *clientptr) {
 	http_parser_settings settings;
 	settings.on_header_field = http_header_field_cb;
 	settings.on_header_value = http_header_value_cb;
+	settings.on_headers_complete = http_header_done_cb;
 	settings.on_url = request_uri_cb;
 	settings.on_body = http_body_cb;
 	settings.on_message_complete = http_message_complete_cb;
