@@ -30,6 +30,7 @@ set(SOURCES
     ../src/rtc.c
     ../src/signals.c
     ../src/utils.c
+    ../src/http.c
     ../src/httpserver.c
     ../src/xmldb.c    
     ../ext/http-parser/http_parser.c

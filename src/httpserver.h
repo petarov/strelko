@@ -23,8 +23,7 @@
 extern "C" {
 #endif
 
-#include "http.h"
-
+typedef struct http_request_t http_request_t;
 
 struct web_server_t {
 	char *hostname;
