@@ -1,9 +1,11 @@
-# Eclipse
+# IDE
 #.project
 #.cproject
 debug/*
 Debug/*
 .settings/*
+compile_commands.json
+nbproject/*
 
 # CMake
 CMakeCache.txt
