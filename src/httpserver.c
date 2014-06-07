@@ -29,7 +29,7 @@
 static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
 	TRACE;
 
-	apr_status_t rv;
+    apr_status_t rv;
     apr_socket_t *s;
     apr_sockaddr_t *sa;
 
@@ -64,13 +64,14 @@ error:
 }
 
 static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
-	web_client_t *client = (web_client_t *) parser->data;
-	client->req->uri = apr_pstrdup(client->rtc->mem_pool, p);
-
-	//TODO: add to url data
-
-	//TODO: split CRLF
-	log_debug("URI: %s", client->req->uri);
+	log_debug("Request: %s", p);
+    
+    web_client_t *client = (web_client_t *) parser->data;
+    strtokens_t *tokens = utils_strsplit((char *)p, "\t ", client->mem_pool);
+    if (tokens->size > 0) {
+        client->req->uri = apr_pstrdup(client->rtc->mem_pool, tokens->token[0]);
+    }
+	
 	return 0;
 }
 
@@ -137,7 +138,7 @@ static void s_process_client(void *clientptr) {
 				parser, &settings, buf, recv_len);
 
 		if (parsed_len != recv_len) {
-			log_err("Request failed! Parsed length=%d, recieved=%d",
+			log_err("Request failed! Parsed length=%d, received=%d",
 					parsed_len, recv_len);
 			server_err = TRUE;
 			break;
@@ -154,8 +155,62 @@ static void s_process_client(void *clientptr) {
 		}
 	}
 
-	log_debug("Locating resource %s", client->req->uri);
-
+    apr_file_t *apr_file = NULL;
+    const conf_opt_t *opt = conf_get_opt(CF_DOCUMENT_ROOT, client->rtc);
+    char filepath[PATH_MAX];
+    
+    snprintf(filepath, PATH_MAX, "%s%s", opt->u.str_val, client->req->uri);
+    
+	apr_status_t rv = apr_file_open(&apr_file, filepath, 
+            APR_FOPEN_READ | APR_FOPEN_BUFFERED | APR_FOPEN_SENDFILE_ENABLED, 
+            APR_FPROT_OS_DEFAULT, client->mem_pool);
+	if (rv == APR_SUCCESS) {
+        
+        apr_finfo_t finfo;
+        rv = apr_file_info_get(&finfo, APR_FINFO_NORM, apr_file);
+        if (rv != APR_SUCCESS) {
+            server_err = TRUE;
+            APR_ERR_PRINT(rv);
+            goto cleanup;
+        }
+        // set response headers
+        char rfc822[APR_RFC822_DATE_LEN + 1], date[APR_RFC822_DATE_LEN + 16];
+        apr_rfc822_date(rfc822, apr_time_now());
+        snprintf(date, 1024, "Date: %s %s", rfc822, HTTP_CRLF);
+        
+        struct iovec headers[3];
+        headers[0].iov_base = "HTTP/1.0 200 OK" HTTP_CRLF;
+        headers[0].iov_len = strlen(headers[0].iov_base);
+        headers[1].iov_base = "Connection: Close" HTTP_CRLF;
+        headers[1].iov_len = strlen(headers[1].iov_base);
+        headers[2].iov_base = date;
+        headers[2].iov_len = strlen(headers[2].iov_base);
+        
+        apr_hdtr_t hdr;
+        hdr.headers = headers;
+        hdr.numheaders = 3;
+        hdr.numtrailers = 0;
+        
+        apr_off_t offset = 0;
+        apr_size_t len = 0;
+        for (int i = 0; i < hdr.numheaders; i++) {
+            len += headers[0].iov_len;
+        }
+        len += finfo.size;
+        
+        rv = apr_socket_sendfile(client->sock, apr_file, &hdr, &offset, &len, 0);
+        if (rv != APR_SUCCESS) {
+            server_err = TRUE;
+        }
+    } else {
+		log_err("File not found - %s", filepath);
+		APR_ERR_PRINT(rv);
+		const char *resp_hdr = "HTTP/1.0 404 Not Found" \
+				HTTP_CRLF HTTP_CRLF;
+		apr_size_t len = strlen(resp_hdr);
+		apr_socket_send(client->sock, resp_hdr, &len);        
+    }
+    
 	//    if (filepath) {
 	//        apr_status_t rv;
 	//        apr_file_t *fp;
@@ -181,6 +236,8 @@ static void s_process_client(void *clientptr) {
 	//        }
 	//    }
 
+cleanup:
+    
 	if (server_err) {
 		const char *resp_hdr = "HTTP/1.0 500 Internal Server Error" \
 				HTTP_CRLF HTTP_CRLF;
@@ -247,13 +304,16 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 		client->rtc = rtc;
 
 		apr_pool_create(&(client->mem_pool), rtc->mem_pool);
-		status_code_t rc = http_create(&(client->req), client->mem_pool);
-
+		http_create(&(client->req), client->mem_pool);
+        
 		int ptrc = pthread_create(&client->thread, NULL,
 				(void *)s_process_client, (void *)client);
-
-		// TODO: remove
-		pthread_join(client->thread, NULL);
+        if (ptrc) {
+            log_warn("Could not create thread! (%d)", ptrc);
+        } else {
+            // TODO: remove
+            pthread_join(client->thread, NULL);
+        }
 	}
 
 	return SC_OK;
