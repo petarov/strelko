@@ -18,6 +18,8 @@ build/
 
 # App
 strelko.conf
+src/strelko_*
+test/strelko_*
 
 # Misc
 docs/*.*~
