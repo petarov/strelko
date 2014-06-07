@@ -26,6 +26,7 @@
 
 #include <getopt.h>
 #include <dirent.h>
+#include <unistd.h>
 #include <apr_lib.h>
 #include <apr_strings.h>
 
@@ -33,12 +34,12 @@
 static const char *opt_string = "vh:p:r:?";
 
 static struct option long_options[] = {
-		{ "verbose", no_argument, NULL, 'v' },
-		{ "help", no_argument, NULL, 0 },
-		{ "host", required_argument, NULL, 'h' },
-		{ "port", required_argument, NULL, 'p' },
-		{ "root", required_argument, NULL, 'r' },
-		{NULL, 0, NULL, 0}
+    { "verbose", no_argument, NULL, 'v' },
+    { "help", no_argument, NULL, 0 },
+    { "host", required_argument, NULL, 'h' },
+    { "port", required_argument, NULL, 'p' },
+    { "root", required_argument, NULL, 'r' },
+    {NULL, 0, NULL, 0}
 };
 
 static const conf_optinfo_t const *configs_template = NULL;
@@ -71,7 +72,8 @@ static int s_isvalid(const char *line) {
 int s_is_opt_optional(const char* key) {
 	TRACE;
 	ASSERT(key != NULL);
-	for(const conf_optinfo_t *options = configs_template; options->key != NULL; options++ ) {
+	for(const conf_optinfo_t *options = configs_template; options->key != NULL; 
+            options++ ) {
 		if (!options->optional)
 			return FALSE;
 	}
@@ -135,7 +137,9 @@ conf_opt_t* s_opt_parse(const char *key, const char *value, runtime_context_t *r
 	TRACE;
 	ASSERT(key != NULL);
 	ASSERT(value != NULL);
-	for(const conf_optinfo_t *options = configs_template; options->key != NULL; options++ ) {
+	for(const conf_optinfo_t *options = configs_template; options->key != NULL; 
+            options++ ) {
+        
 		if (!apr_strnatcmp(options->key, key)) {
 			conf_opt_t *opt = NULL;
 
@@ -143,21 +147,24 @@ conf_opt_t* s_opt_parse(const char *key, const char *value, runtime_context_t *r
 			switch(options->type) {
 			case CT_INT:
 				if (utils_isnum(value, MAX_OPTION_VALUE_SIZE)) {
-					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, 
+                            sizeof(conf_opt_t));
 					opt->key = key;
 					opt->u.int_val = strtol(value, (char **)NULL, 10);
 				}
 				break;
 			case CT_STRING:
 				if (utils_isstr(value, MAX_OPTION_VALUE_SIZE)) {
-					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, 
+                            sizeof(conf_opt_t));
 					opt->key = key;
 					opt->u.str_val = apr_pstrdup(rtc->mem_pool, value);
 				}
 				break;
 			case CT_BOOL:
 				if (utils_isbool(value)) {
-					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, sizeof(conf_opt_t));
+					opt = (conf_opt_t *)apr_pcalloc(rtc->mem_pool, 
+                            sizeof(conf_opt_t));
 					opt->key = key;
 					opt->u.bool_val = utils_tobool(value);
 				}
@@ -185,7 +192,9 @@ int s_is_opt_valid(const char *key/*, const char *value*/) {
 	if (!s_isvalid(key))
 		return FALSE;
 
-	for(const conf_optinfo_t *options = configs_template; options->key != NULL; options++ ) {
+	for(const conf_optinfo_t *options = configs_template; options->key != NULL; 
+            options++ ) {
+        
 		if (!apr_strnatcmp(options->key, key)) {
 			return TRUE;
 //			// now check if the value is of the expected type
@@ -270,7 +279,6 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(rtc != NULL);
 
-	int	success = FALSE;
 	int next = -1;
 	int opt_idx;
 
@@ -310,7 +318,7 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 
 	if (!conf_get_opt(CF_DOCUMENT_ROOT, rtc)) {
 		char cwd[1024];
-		if (getcwd(cwd, sizeof(cwd)) == NULL) {
+		if (NULL == getcwd(cwd, sizeof(cwd))) {
 			log_err("getcwd failed(%d)!", errno);
 			return FALSE;
 
@@ -334,8 +342,8 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 
 	log_info("Document root is %s", docroot);
 
-	success = conf_get_opt(CF_LISTEN_ADDRESS, rtc) && conf_get_opt(CF_LISTEN_PORT, rtc);
-	return success;
+	return conf_get_opt(CF_LISTEN_ADDRESS, rtc) 
+            && conf_get_opt(CF_LISTEN_PORT, rtc);
 }
 
 const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc) {
