@@ -3,27 +3,33 @@
 
 Strelko is a small footprint HTTP server. 
 
-Goal of this project is to provide swift file hosting solution for web developers, 
-designers and others. In the ideal case **Strelko** would be the perfect solution 
-for testing your web project directly on the development machine. 
-This being said **Strelko** pretty much mimics the functionality of:
-
-    python -m SimpleHTTPServer 8000
-
-Pros that **Strelko** may offer are:
-* multi-threading support
-* minumal runtime requirements ( *just one binary* )
-* slightly faster ( *not confirmed* )
+The goal of **Strelko** is to provide swift solution for testing your html/css project 
+or just a fast way to share some files over HTTP. Could be useful to web developers,
+web designers, testers and others.
 
 **Note** that it is highly **unrecommended** to use this HTTP server on any productive system!
 
+# Why do I need this?
+You probably don't. ;) Python does pretty much the same, if you run:
+
+    $ python -m SimpleHTTPServer 8000
+
+However, **Strelko** has no dependencies and it's also smaller.
+
 # Installation
+
+  $ cmake -G "Unix Makefiles"
+
+To build a debug binary use:
+
+  $ cmake -G "Unix Makefiles"  -DCMAKE_BUILD_TYPE:STRING=Debug
 
 # Usage
 
-# Development
+    $ strelko_srv -h <listen address> -p <listen port>
 
-## Used Libraries  
+# Development
+## Libraries Used
   * [APR](http://apr.apache.org/) - Apache Portable Runtime.
   * [HTTP Parser](https://github.com/joyent/http-parser) - Parser for HTTP messages written in C.
 
