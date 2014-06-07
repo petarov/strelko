@@ -26,8 +26,6 @@
 extern "C" {
 #endif
 
-typedef struct xmldb_t xmldb_t;
-
 /**
  * Runtime context that encapsulates all global parameters
  */
@@ -35,7 +33,6 @@ struct runtime_context_t {
 	char appname[64];
 	apr_pool_t *mem_pool;
 	apr_hash_t *options;
-	xmldb_t *xmldb;
 };
 typedef struct runtime_context_t runtime_context_t;
 
