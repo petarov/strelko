@@ -1,8 +1,0 @@
-# ead_server configurations
-#################################
-
-# server parameters
-
-listen_address=localhost
-listen_port=8088
-
