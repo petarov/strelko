@@ -1,5 +1,5 @@
 /*
- * Strelko is a small-footprint HTTP server.
+ * Strelko is a small footprint HTTP server.
  * Copyright (C) 2013 Petar Petrov
  *
  * This program is free software: you can redistribute it and/or modify
