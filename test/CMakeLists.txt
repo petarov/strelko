@@ -32,13 +32,13 @@ set(SOURCES
     ../src/utils.c
     ../src/http.c
     ../src/httpserver.c
-    ../src/xmldb.c    
     ../ext/http-parser/http_parser.c
 )
 
 APP_DEBUG_MESSAGE("Sources: ${SOURCES}")
 
 ### Build #################################################################
+remove_definitions(-Wall)
 add_executable(strelko_tests ${SOURCES})
 
 target_link_libraries(strelko_tests ${APR_LIB_NAME} ${APRUTIL_LIB_NAME} 

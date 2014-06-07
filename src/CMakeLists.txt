@@ -30,7 +30,6 @@ set(SOURCES
     utils.c
     httpserver.c
     http.c
-    xmldb.c
     ../ext/http-parser/http_parser.c
 )
 

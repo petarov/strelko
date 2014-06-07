@@ -73,7 +73,6 @@ typedef enum status_code_e status_code_t;
 
 #include "confs.h"
 #include "rtc.h"
-#include "xmldb.h"
 #include "utils.h"
 
 #endif /* EAD_SERVER_H_ */

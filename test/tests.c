@@ -21,7 +21,7 @@
 #include "logger.h"
 #include "minunit.h"
 
-#include "xmldb.h"
+//#include "xmldb.h"
 #include "tests.h"
 
 #include <string.h>
@@ -46,22 +46,22 @@ static s_post() {
 
 
 /************************ XMLDB ****************************************************************/
-char* tc_xmldb_1() {
-	mu_trace(tc_xmldb_1);
-
-	const char *dirname = "data";
-
-	runtime_context_t rtc;
-	rtc.mem_pool = test_pool;
-
-	status_code_t ret = xmldb_init(dirname, &rtc);
-	mu_assert("XML dir load failed!", ret == SC_OK);
-
-	int res = xmldb_get("en", "E100", &rtc);
-	mu_assert("E100 not found!", res);
-
-	return NULL;
-}
+//char* tc_xmldb_1() {
+//	mu_trace(tc_xmldb_1);
+//
+//	const char *dirname = "data";
+//
+//	runtime_context_t rtc;
+//	rtc.mem_pool = test_pool;
+//
+//	status_code_t ret = xmldb_init(dirname, &rtc);
+//	mu_assert("XML dir load failed!", ret == SC_OK);
+//
+//	int res = xmldb_get("en", "E100", &rtc);
+//	mu_assert("E100 not found!", res);
+//
+//	return NULL;
+//}
 
 /************************ UTILS ****************************************************************/
 
@@ -175,7 +175,7 @@ char* test_suit_utils() {
 
     mu_run_test(tc_utils_1);
     mu_run_test(tc_utils_2);
-    mu_run_test(tc_xmldb_1);
+//    mu_run_test(tc_xmldb_1);
 
 	s_post();
 	log_close();
