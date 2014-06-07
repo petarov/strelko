@@ -43,8 +43,6 @@ void rtc_destroy(runtime_context_t **rtc) {
 	TRACE;
 
 	runtime_context_t *runtime = *rtc;
-	ASSERT(runtime != NULL);
-
 	if (runtime != NULL) {
 		if (runtime->mem_pool)
 			apr_pool_destroy(runtime->mem_pool);
