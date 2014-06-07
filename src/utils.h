@@ -31,7 +31,7 @@
 extern "C" {
 #endif
 
-#define ISNUM(c) 		(c >= '0' && c <= '9')
+#define ISNUM(c) 	(c >= '0' && c <= '9')
 #define ISWHITESPACE(c) (c == '\t' || c == ' ' || c == '\n' || c == '\r')
 
 /**

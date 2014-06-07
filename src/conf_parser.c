@@ -227,8 +227,9 @@ int conf_parse(const char *filename, runtime_context_t *rtc) {
 	apr_file_t *apr_file = NULL;
 	int	success	= FALSE;
 
-	apr_status_t rv = apr_file_open(&apr_file, filename, APR_FOPEN_READ | APR_FOPEN_BUFFERED,
-			APR_FPROT_OS_DEFAULT, rtc->mem_pool);
+	apr_status_t rv = apr_file_open(&apr_file, filename, 
+            APR_FOPEN_READ | APR_FOPEN_BUFFERED, 
+            APR_FPROT_OS_DEFAULT, rtc->mem_pool);
 	if (rv == APR_SUCCESS) {
 		char line[CONF_MAX_LINE_SIZE];
 //		rtc->options = apr_hash_make(rtc->mem_pool);
