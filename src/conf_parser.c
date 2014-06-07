@@ -316,6 +316,16 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 	/*
 	 * Set Default options
 	 */
+    
+    if (!conf_get_opt(CF_LISTEN_ADDRESS, rtc)) {
+        s_opt_addnew(CF_LISTEN_ADDRESS, CF_DEFAULT_LISTEN_ADDRESS, 
+                CT_STRING, rtc);
+    }
+    
+    if (!conf_get_opt(CF_LISTEN_PORT, rtc)) {
+        s_opt_addnew(CF_LISTEN_PORT, CF_DEFAULT_LISTEN_PORT, 
+                CT_INT, rtc);
+    }    
 
 	if (!conf_get_opt(CF_DOCUMENT_ROOT, rtc)) {
 		char cwd[1024];
@@ -348,7 +358,9 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 }
 
 const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc) {
-	conf_opt_t *opt = apr_hash_get(rtc->options, key, APR_HASH_KEY_STRING);
-//	ASSERT(opt != NULL);
+    conf_opt_t *opt = NULL;
+    if (rtc->options) {
+        opt = apr_hash_get(rtc->options, key, APR_HASH_KEY_STRING);    
+    }
 	return opt;
 }

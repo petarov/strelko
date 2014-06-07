@@ -27,4 +27,7 @@
 #define CF_LISTEN_PORT			"listen_port"
 #define CF_DOCUMENT_ROOT 		"document_root"
 
+#define CF_DEFAULT_LISTEN_ADDRESS       "localhost"
+#define CF_DEFAULT_LISTEN_PORT          "8080"
+
 #endif /* CONFS_H_ */

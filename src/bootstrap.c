@@ -41,13 +41,11 @@ status_code_t bs_init(int argc, char* argv[]) {
 	/**
 	 * Check command line
 	 */
-	if (argc < 2) {
-		fprintf(stderr, "Missing command line parameters!\n");
-		exit_code = SC_BS_ERR_CMD;
-		goto error;
-//	} else {
-//		config_filepath = argv[1];
-	}
+//	if (argc < 2) {
+//		fprintf(stderr, "Missing command line parameters!\n");
+//		exit_code = SC_BS_ERR_CMD;
+//		goto error;
+//	}
 
 	/*
 	 * Init logging system
