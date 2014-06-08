@@ -69,7 +69,7 @@ static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
     web_client_t *client = (web_client_t *) parser->data;
     strtokens_t *tokens = utils_strsplit((char *)p, "\t ", client->mem_pool);
     if (tokens->size > 0) {
-        client->req->uri = apr_pstrdup(client->rtc->mem_pool, tokens->token[0]);
+        client->req->uri = apr_pstrdup(client->mem_pool, tokens->token[0]);
     }
 	
 	return 0;
@@ -161,6 +161,8 @@ static void s_process_client(void *clientptr) {
     
     snprintf(filepath, PATH_MAX, "%s%s", opt->u.str_val, client->req->uri);
     
+    log_debug("Serving from %s ", filepath);
+    
 	apr_status_t rv = apr_file_open(&apr_file, filepath, 
             APR_FOPEN_READ | APR_FOPEN_BUFFERED | APR_FOPEN_SENDFILE_ENABLED, 
             APR_FPROT_OS_DEFAULT, client->mem_pool);
@@ -173,34 +175,47 @@ static void s_process_client(void *clientptr) {
             APR_ERR_PRINT(rv);
             goto cleanup;
         }
-        // set response headers
-        char rfc822[APR_RFC822_DATE_LEN + 1], date[APR_RFC822_DATE_LEN + 16];
-        apr_rfc822_date(rfc822, apr_time_now());
-        snprintf(date, 1024, "Date: %s %s", rfc822, HTTP_CRLF);
         
-        struct iovec headers[3];
-        headers[0].iov_base = "HTTP/1.0 200 OK" HTTP_CRLF;
+        // set response headers
+        char rfc822[APR_RFC822_DATE_LEN + 1];
+        apr_rfc822_date(rfc822, apr_time_now());
+        
+        struct iovec headers[5];
+        headers[0].iov_base = "HTTP/1.1 200 OK" HTTP_CRLF;
         headers[0].iov_len = strlen(headers[0].iov_base);
-        headers[1].iov_base = "Connection: Close" HTTP_CRLF;
+        headers[1].iov_base = apr_psprintf(client->mem_pool, 
+                "Date: %s" HTTP_CRLF, rfc822);
         headers[1].iov_len = strlen(headers[1].iov_base);
-        headers[2].iov_base = date;
+        headers[2].iov_base = apr_psprintf(client->mem_pool, 
+                "Content-Length: %" APR_OFF_T_FMT HTTP_CRLF, finfo.size);
         headers[2].iov_len = strlen(headers[2].iov_base);
+        headers[3].iov_base = "Content-Type: text/html" HTTP_CRLF;
+        headers[3].iov_len = strlen(headers[3].iov_base);
+        headers[4].iov_base = HTTP_CRLF;
+        headers[4].iov_len = strlen(headers[4].iov_base);
+        //        headers[1].iov_base = "Connection: Close" HTTP_CRLF;
+//        headers[1].iov_len = strlen(headers[1].iov_base);
         
         apr_hdtr_t hdr;
         hdr.headers = headers;
-        hdr.numheaders = 3;
+        hdr.numheaders = 5;
         hdr.numtrailers = 0;
         
         apr_off_t offset = 0;
-        apr_size_t len = 0;
+        apr_size_t len = finfo.size;
+        apr_size_t expected_len = 0;
         for (int i = 0; i < hdr.numheaders; i++) {
-            len += headers[0].iov_len;
+            log_debug("HDR: %s", headers[i].iov_base);
+            expected_len += headers[i].iov_len;
         }
-        len += finfo.size;
+        expected_len += finfo.size;
         
         rv = apr_socket_sendfile(client->sock, apr_file, &hdr, &offset, &len, 0);
         if (rv != APR_SUCCESS) {
             server_err = TRUE;
+        } else if (len != expected_len) {
+            log_warn("Sent %" APR_SIZE_T_FMT " of %" APR_SIZE_T_FMT " bytes", 
+                    len, expected_len);
         }
     } else {
 		log_err("File not found - %s", filepath);
