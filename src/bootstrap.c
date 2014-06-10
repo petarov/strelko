@@ -94,9 +94,9 @@ error:
 void bs_start() {
 	TRACE;
 
-	// Fire-up the web server
-	httpsrv_create(&websrv, rtctx);
-	httpsrv_start(websrv, rtctx);
+	if (SC_OK == httpsrv_create(&websrv, rtctx)) {
+        httpsrv_start(websrv, rtctx);    
+    }
 }
 
 void bs_stop() {
