@@ -25,6 +25,8 @@
 #include "http_parser.h"
 
 #define BUFSIZE			4096
+#define POLL_CONN_SIZE  100
+#define POLL_TIMEOUT	(APR_USEC_PER_SEC * 30)
 
 static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
 	TRACE;
@@ -118,10 +120,11 @@ static int http_message_complete_cb(http_parser *parser) {
 static void s_process_client(void *clientptr) {
 	TRACE;
 	ASSERT(clientptr != NULL);
+    
 	web_client_t *client = (web_client_t *) clientptr;
-
 	char buf[BUFSIZE];
 	http_parser_settings settings;
+    
 	settings.on_header_field = http_header_field_cb;
 	settings.on_header_value = http_header_value_cb;
 	settings.on_headers_complete = http_header_done_cb;
@@ -295,47 +298,91 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	ASSERT(ws != NULL);
 
 	apr_status_t rv = APR_SUCCESS;
-
+    apr_pollset_t *pollset;
+    apr_int32_t num;
+    const apr_pollfd_t *ret_pfd;    
+    
 	// start listening on host:port
 	if (APR_SUCCESS != (rv = s_listen(ws, rtc->mem_pool)))
 		return SC_WS_LISTEN_FAILED;
 
+    // Set up a pollset object
+    apr_pollset_create(&pollset, POLL_CONN_SIZE, rtc->mem_pool, 0);
+    {
+        apr_pollfd_t pfd = { rtc->mem_pool, APR_POLL_SOCKET, APR_POLLIN, 
+            0, { NULL }, NULL };
+        pfd.desc.s = ws->sock;
+        apr_pollset_add(pollset, &pfd);
+    }
+
 	ws->is_running = TRUE;
 
 	while (ws->is_running) {
-		apr_socket_t *client_sock;
-
-		rv = apr_socket_accept(&client_sock, ws->sock, rtc->mem_pool);
-		if (rv != APR_SUCCESS) {
-			// just notify
-			log_err("Client socket failed !");
-//			goto error;
-			continue;
-		}
-
-		// specify client socket options
-		apr_socket_opt_set(client_sock, APR_SO_NONBLOCK, 0);
-		apr_socket_timeout_set(client_sock, -1);
-
-		// create new client
-		web_client_t *client = (web_client_t *)apr_palloc(rtc->mem_pool,
-				sizeof(web_client_t));
-		client->sock = client_sock;
-		client->connected = TRUE;
-		client->done = FALSE;
-		client->rtc = rtc;
-
-		apr_pool_create(&(client->mem_pool), rtc->mem_pool);
-		http_create(&(client->req), client->mem_pool);
+        rv = apr_pollset_poll(pollset, POLL_TIMEOUT, &num, &ret_pfd);
+        if (APR_SUCCESS != rv)
+            continue;
         
-		int ptrc = pthread_create(&client->thread, NULL,
-				(void *)s_process_client, (void *)client);
-        if (ptrc) {
-            log_warn("Could not create thread! (%d)", ptrc);
-        } else {
-            // TODO: remove
-            pthread_join(client->thread, NULL);
+        ASSERT(num > 0);
+        for (int i = 0; i < num; i++) {
+            if (ret_pfd[i].desc.s == ws->sock) {
+                // listening socket is readable -> new connection
+                apr_socket_t *client_sock;
+                log_debug("NEW SCOKET created.");
+
+                rv = apr_socket_accept(&client_sock, ws->sock, rtc->mem_pool);
+                if (rv != APR_SUCCESS) {
+                    // just notify
+                    log_err("Client socket failed !");
+                    APR_ERR_PRINT(rv);
+                    continue;
+                }
+
+                // specify client socket options
+                apr_socket_opt_set(client_sock, APR_SO_NONBLOCK, 1);
+                apr_socket_timeout_set(client_sock, 0);
+
+                // create new client
+                web_client_t *client = (web_client_t *)apr_palloc(rtc->mem_pool,
+                        sizeof(web_client_t));
+                client->sock = client_sock;
+                client->connected = TRUE;
+                client->done = FALSE;
+                client->rtc = rtc;
+                apr_pool_create(&(client->mem_pool), rtc->mem_pool);
+
+                apr_pollfd_t pfd = { rtc->mem_pool, APR_POLL_SOCKET, 
+                    APR_POLLIN, 0, { NULL }, client };
+                pfd.desc.s = client_sock;
+
+                apr_pollset_add(pollset, &pfd);
+
+            } else {
+                // TODO: service existing connection
+                web_client_t *client = 
+                        (web_client_t *) ret_pfd[i].client_data;
+                log_debug("SOCKET[%d] data has arrived.", i);
+                
+                while (1) {
+                    char buf[BUFSIZE];
+                    apr_size_t len = sizeof(buf) - 1;/* -1 for a null-terminated */
+
+                    apr_status_t rv = apr_socket_recv(client->sock, buf, &len);
+                    if (rv == APR_EOF || len == 0) {
+                        break;
+                    }
+                    buf[len] = '\0';/* apr_socket_recv() doesn't return a null-terminated string */
+                    log_debug("SOCKET[%d] DATA: %s \n", i, buf);
+                }                
+            }
         }
+//		int ptrc = pthread_create(&client->thread, NULL,
+//				(void *)s_process_client, (void *)client);
+//        if (ptrc) {
+//            log_warn("Could not create thread! (%d)", ptrc);
+//        } else {
+//            // TODO: remove
+//            pthread_join(client->thread, NULL);
+//        }
 	}
 
 	return SC_OK;

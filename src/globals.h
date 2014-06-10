@@ -61,6 +61,7 @@ typedef int64_t		int64;
 #include <apr_hash.h>
 #include <apr_xml.h>
 #include <apr_network_io.h>
+#include <apr_poll.h>
 
 #define APR_ERR_PRINT(rv) { char buf[512]; apr_strerror(rv, buf, sizeof(buf)); \
 	log_err("APR ERROR: %s", buf); \
