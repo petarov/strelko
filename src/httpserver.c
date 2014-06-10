@@ -31,32 +31,40 @@ static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
 
     apr_status_t rv;
     apr_socket_t *s;
-    apr_sockaddr_t *sa;
+    apr_sockaddr_t *soaddr;
 
     log_debug("Starting http server on %s:%d", ws->hostname, ws->port);
 
-    if (APR_SUCCESS != (rv = apr_sockaddr_info_get(&sa, NULL, APR_INET,
+    if (APR_SUCCESS != (rv = apr_sockaddr_info_get(&soaddr, NULL, APR_INET,
     		ws->port, 0, mp)))
     	goto error;
 
-    if (APR_SUCCESS != (rv = apr_socket_create(&s, sa->family, SOCK_STREAM,
+    if (APR_SUCCESS != (rv = apr_socket_create(&s, soaddr->family, SOCK_STREAM,
     		APR_PROTO_TCP, mp)))
     	goto error;
 
-    /* it is a good idea to specify socket options explicitly.
-     * in this case, we make a blocking socket as the listening socket
+    /* 
+     * Specify socket options explicitly.
+     * Listening socket is a non-blocking socket.
      */
-    apr_socket_opt_set(s, APR_SO_NONBLOCK, 0);
-    apr_socket_timeout_set(s, -1);
+    apr_socket_opt_set(s, APR_SO_NONBLOCK, 1);
+    /**
+     * [a] When you want a non-blocking socket, set it to 
+     * 'APR_SO_NONBLOCK==1(on) and timeout==0'. Refer to:
+     * dev.ariel-networks.com/apr/apr-tutorial/html/apr-tutorial-13.html#ss13.4
+     */
+    apr_socket_timeout_set(s, 0);
+    
     apr_socket_opt_set(s, APR_SO_REUSEADDR, 1);
 
-    if (APR_SUCCESS != (rv = apr_socket_bind(s, sa)))
+    if (APR_SUCCESS != (rv = apr_socket_bind(s, soaddr)))
     	goto error;
 
     if (APR_SUCCESS != (rv = apr_socket_listen(s, SOMAXCONN)))
     	goto error;
 
-    // assign the created socket
+    // assign successfully created socket
+    ASSERT(s);
     ws->sock = s;
 
 error:
@@ -286,11 +294,10 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(ws != NULL);
 
-	apr_pool_t *mp 	= rtc->mem_pool;
 	apr_status_t rv = APR_SUCCESS;
 
 	// start listening on host:port
-	if (APR_SUCCESS != (rv = s_listen(ws, mp)))
+	if (APR_SUCCESS != (rv = s_listen(ws, rtc->mem_pool)))
 		return SC_WS_LISTEN_FAILED;
 
 	ws->is_running = TRUE;
@@ -298,7 +305,7 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	while (ws->is_running) {
 		apr_socket_t *client_sock;
 
-		rv = apr_socket_accept(&client_sock, ws->sock, mp);
+		rv = apr_socket_accept(&client_sock, ws->sock, rtc->mem_pool);
 		if (rv != APR_SUCCESS) {
 			// just notify
 			log_err("Client socket failed !");
