@@ -72,6 +72,7 @@ static int s_isvalid(const char *line) {
 int s_is_opt_optional(const char* key) {
 	TRACE;
 	ASSERT(key != NULL);
+    
 	for(const conf_optinfo_t *options = configs_template; options->key != NULL; 
             options++ ) {
 		if (!options->optional)
@@ -83,6 +84,7 @@ int s_is_opt_optional(const char* key) {
 static void s_opt_add(const char* key, conf_opt_t* opt, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(key != NULL);
+    
 	if (!rtc->options) {
 		rtc->options = apr_hash_make(rtc->mem_pool);
 	}
@@ -137,6 +139,7 @@ conf_opt_t* s_opt_parse(const char *key, const char *value, runtime_context_t *r
 	TRACE;
 	ASSERT(key != NULL);
 	ASSERT(value != NULL);
+    
 	for(const conf_optinfo_t *options = configs_template; options->key != NULL; 
             options++ ) {
         
@@ -217,6 +220,7 @@ int s_is_opt_valid(const char *key/*, const char *value*/) {
 
 int conf_init(const conf_optinfo_t const *configs) {
 	ASSERT(configs != NULL);
+    
 	configs_template = configs;
 	return TRUE;
 }
@@ -224,6 +228,7 @@ int conf_init(const conf_optinfo_t const *configs) {
 int conf_parse(const char *filename, runtime_context_t *rtc) {
 	TRACE;
 	ASSERT(rtc != NULL);
+    
 	apr_file_t *apr_file = NULL;
 	int	success	= FALSE;
 
@@ -314,7 +319,7 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 	} while (next != -1);
 
 	/*
-	 * Set Default options
+	 * Set defaults
 	 */
     
     if (!conf_get_opt(CF_LISTEN_ADDRESS, rtc)) {
@@ -358,6 +363,8 @@ int conf_parse_arg(int argc, char *argv[], runtime_context_t *rtc) {
 }
 
 const conf_opt_t* const conf_get_opt(const char *key, runtime_context_t *rtc) {
+//    TRACE;
+    
     conf_opt_t *opt = NULL;
     if (rtc->options) {
         opt = apr_hash_get(rtc->options, key, APR_HASH_KEY_STRING);    
