@@ -38,13 +38,7 @@ include_directories(src test ext/http-parser)
 
 set (VERSION_MAJ 0)
 set (VERSION_MIN 9)
-
-### configure a header file to pass some of the CMake settings to the source code
-configure_file (
-  "${PROJECT_SOURCE_DIR}/Config.h.in"
-  "${PROJECT_SOURCE_DIR}/src/Config.h"
-  )
-  
+ 
 ### requirements
 # PThread
 #find_package(Threads REQUIRED)
@@ -84,11 +78,11 @@ if (UNIX AND NOT WIN32)
     add_definitions(-DLINUX_BUILD)
     
     if (CMAKE_SIZEOF_VOID_P MATCHES "8")
-    	set(CPU_ARCH 64)
-		add_definitions(-DARCH_X64)
+    	set(CPU_ARCH "x86_64")
+        add_definitions(-DARCH_X64)
     else()
-		add_definitions(-DARCH_X86)
-		set(CPU_ARCH 86)
+        set(CPU_ARCH "i686")
+        add_definitions(-DARCH_X86)
     endif()
 endif()
 
@@ -99,6 +93,12 @@ add_definitions(-D_FILE_OFFSET_BITS=64)
 add_definitions(-std=c99)
 # wtf -> http://pubs.opengroup.org/onlinepubs/9699919799/xrat/V4_xsh_chap02.html#tag_22_02_02
 add_definitions(-D_XOPEN_SOURCE)
+
+### configure a header file to pass some of the CMake settings to the source code
+configure_file (
+  "${PROJECT_SOURCE_DIR}/Config.h.in"
+  "${PROJECT_SOURCE_DIR}/src/Config.h"
+  )
 
 ### build subdirs
 add_subdirectory(src)

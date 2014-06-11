@@ -55,7 +55,8 @@ status_code_t bs_init(int argc, char* argv[]) {
         exit_code = SC_BS_ERR_LOG;
         goto error;
 	}
-	log_info("Running Strelko HTTP v%d.%d", VERSION_MAJOR, VERSION_MINOR);
+	log_info("Running Strelko HTTP v%d.%d %s", VERSION_MAJOR, VERSION_MINOR, 
+            CPU_ARCH);
 
 	/**
 	 * Register signal handling
