@@ -36,8 +36,8 @@ include_directories(src test ext/http-parser)
 
 # Setup configuration
 
-set (VERSION_MAJ 1)
-set (VERSION_MIN 0)
+set (VERSION_MAJ 0)
+set (VERSION_MIN 9)
 
 ### configure a header file to pass some of the CMake settings to the source code
 configure_file (

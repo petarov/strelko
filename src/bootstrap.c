@@ -55,13 +55,13 @@ status_code_t bs_init(int argc, char* argv[]) {
         exit_code = SC_BS_ERR_LOG;
         goto error;
 	}
-	log_info("Bootstrap started");
+	log_info("Running Strelko HTTP v%d.%d", VERSION_MAJOR, VERSION_MINOR);
 
 	/**
 	 * Register signal handling
 	 */
 	signals_init();
-	log_info("Signal handling registered.");
+	log_info("Signal handler registered.");
 
 	/**
 	 * Init Apache APR
@@ -107,11 +107,11 @@ void bs_stop() {
 
 void bs_destroy() {
 	TRACE;
+    log_info("Strelko is shutting down ...");
 
 	rtc_destroy(&rtctx);
 	apr_terminate();
-
-	log_info("Bootstrap cleanup finished.");
+	
 	log_close();
 }
 

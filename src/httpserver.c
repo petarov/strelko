@@ -34,8 +34,6 @@ static apr_status_t s_listen(web_server_t *ws, apr_pool_t *mp) {
     apr_socket_t *s;
     apr_sockaddr_t *soaddr;
 
-    log_debug("Starting http server on %s:%d", ws->hostname, ws->port);
-
     if (APR_SUCCESS != (rv = apr_sockaddr_info_get(&soaddr, NULL, APR_INET,
     		ws->port, 0, mp)))
     	goto error;
@@ -316,7 +314,9 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	apr_status_t rv = APR_SUCCESS;
     apr_pollset_t *pollset;
     apr_int32_t num;
-    const apr_pollfd_t *ret_pfd;    
+    const apr_pollfd_t *ret_pfd;
+    
+    log_debug("Listening on %s:%d", ws->hostname, ws->port);
     
 	// start listening on host:port
 	if (APR_SUCCESS != (rv = s_listen(ws, rtc->mem_pool)))
@@ -384,7 +384,7 @@ void httpsrv_stop(web_server_t *ws) {
 	TRACE;
 
 	if (ws != NULL) {
-		log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
+		log_debug("Stop listening on %s:%d", ws->hostname, ws->port);
 		ws->is_running = FALSE;
 	}
 }
