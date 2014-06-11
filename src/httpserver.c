@@ -20,7 +20,6 @@
 #include "globals.h"
 #include "logger.h"
 #include "conf_parser.h"
-#include "http.h"
 #include "httpserver.h"
 #include "http_parser.h"
 
@@ -73,13 +72,32 @@ error:
     return rv;
 }
 
+static status_code_t s_wc_create(web_client_t **wc, runtime_context_t *rtc) {
+    
+    web_client_t *client = (web_client_t *)apr_palloc(rtc->mem_pool, 
+            sizeof(web_client_t));
+    
+    apr_pool_create(&(client->mem_pool), rtc->mem_pool);
+    
+    client->connected = TRUE;
+    client->done = FALSE;
+    client->rtc = rtc;
+    client->bucket = (char *)apr_palloc(client->mem_pool, BUFSIZE * 2);
+    client->blen = 0;
+    
+    *wc = client;
+    
+    return SC_OK;
+} 
+
 static int request_uri_cb(http_parser *parser, const char *p, size_t len) {
 	log_debug("Request: %s", p);
     
     web_client_t *client = (web_client_t *) parser->data;
-    strtokens_t *tokens = utils_strsplit((char *)p, "\t ", client->mem_pool);
+    strtokens_t *tokens = utils_strsplit((char *)p, " ", client->mem_pool);
+    log_debug("tokens: %s", tokens->token[0]);
     if (tokens->size > 0) {
-        client->req->uri = apr_pstrdup(client->mem_pool, tokens->token[0]);
+        client->req.uri = apr_pstrdup(client->mem_pool, tokens->token[0]);
     }
 	
 	return 0;
@@ -117,24 +135,12 @@ static int http_message_complete_cb(http_parser *parser) {
 	return 0;
 }
 
-static void s_process_client(void *clientptr) {
+static void s_process_client(void *clientptr, apr_pollset_t *pollset) {
 	TRACE;
 	ASSERT(clientptr != NULL);
     
 	web_client_t *client = (web_client_t *) clientptr;
 	char buf[BUFSIZE];
-	http_parser_settings settings;
-    
-	settings.on_header_field = http_header_field_cb;
-	settings.on_header_value = http_header_value_cb;
-	settings.on_headers_complete = http_header_done_cb;
-	settings.on_url = request_uri_cb;
-	settings.on_body = http_body_cb;
-	settings.on_message_complete = http_message_complete_cb;
-
-	http_parser *parser = apr_palloc(client->mem_pool, sizeof(http_parser));
-	parser->data = clientptr;
-	http_parser_init(parser, HTTP_REQUEST);
 
 	int server_err = FALSE;
 	while (!client->done) {
@@ -145,122 +151,128 @@ static void s_process_client(void *clientptr) {
 
 		// null-terminate the string buffer
 		buf[recv_len] = '\0';
-		apr_size_t parsed_len = http_parser_execute(
-				parser, &settings, buf, recv_len);
-
-		if (parsed_len != recv_len) {
-			log_err("Request failed! Parsed length=%d, received=%d",
-					parsed_len, recv_len);
-			server_err = TRUE;
-			break;
-		}
-
-		/*
+        
+        memcpy(client->bucket + client->blen, buf, recv_len);
+        client->blen += recv_len;
+        
+    	/*
 		 * The request line and headers must all end with <CR><LF>
 		 * Note that this is a nasty hack! Improper GET requests would
 		 * block the thread as the while(1) loop will continue forever because
 		 * the socket_recv will keep blocking - waiting for more data.
 		 */
 		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
-			break;
+            client->done = TRUE;
+            
+            // change socket status
+            apr_pollfd_t pfd = { client->mem_pool, APR_POLL_SOCKET, APR_POLLIN, 
+                0, { NULL }, client };
+            pfd.desc.s = client->sock;
+            apr_pollset_remove(pollset, &pfd);
+            pfd.reqevents = APR_POLLOUT;
+            apr_pollset_add(pollset, &pfd);
+            
+            // parse HTTP request
+            http_parser *parser = apr_palloc(client->mem_pool, sizeof(http_parser));
+            http_parser_settings settings = {
+                NULL, request_uri_cb, NULL, http_header_field_cb, 
+                http_header_value_cb, http_header_done_cb, http_body_cb, 
+                http_message_complete_cb
+            };
+            
+            log_debug("Bucket: %s", client->bucket);
+            
+            parser->data = clientptr;
+            http_parser_init(parser, HTTP_REQUEST);
+            apr_size_t parsed_len = http_parser_execute(parser, &settings, 
+                    client->bucket, recv_len);
+
+            if (parsed_len != recv_len) {
+                log_err("Request failed! Parsed length=%d, received=%d",
+                        parsed_len, recv_len);
+                server_err = TRUE;
+                break;
+            } else {
+                // DUMMY
+                const char *resp_hdr = "HTTP/1.0 501 Internal Server Error" \
+                        HTTP_CRLF HTTP_CRLF;
+                apr_size_t len = strlen(resp_hdr);
+                apr_socket_send(client->sock, resp_hdr, &len);
+                
+            }
 		}
 	}
 
-    apr_file_t *apr_file = NULL;
-    const conf_opt_t *opt = conf_get_opt(CF_DOCUMENT_ROOT, client->rtc);
-    char filepath[PATH_MAX];
-    
-    snprintf(filepath, PATH_MAX, "%s%s", opt->u.str_val, client->req->uri);
-    
-    log_debug("Serving from %s ", filepath);
-    
-	apr_status_t rv = apr_file_open(&apr_file, filepath, 
-            APR_FOPEN_READ | APR_FOPEN_BUFFERED | APR_FOPEN_SENDFILE_ENABLED, 
-            APR_FPROT_OS_DEFAULT, client->mem_pool);
-	if (rv == APR_SUCCESS) {
-        
-        apr_finfo_t finfo;
-        rv = apr_file_info_get(&finfo, APR_FINFO_NORM, apr_file);
-        if (rv != APR_SUCCESS) {
-            server_err = TRUE;
-            APR_ERR_PRINT(rv);
-            goto cleanup;
-        }
-        
-        // set response headers
-        char rfc822[APR_RFC822_DATE_LEN + 1];
-        apr_rfc822_date(rfc822, apr_time_now());
-        
-        struct iovec headers[5];
-        headers[0].iov_base = "HTTP/1.1 200 OK" HTTP_CRLF;
-        headers[0].iov_len = strlen(headers[0].iov_base);
-        headers[1].iov_base = apr_psprintf(client->mem_pool, 
-                "Date: %s" HTTP_CRLF, rfc822);
-        headers[1].iov_len = strlen(headers[1].iov_base);
-        headers[2].iov_base = apr_psprintf(client->mem_pool, 
-                "Content-Length: %" APR_OFF_T_FMT HTTP_CRLF, finfo.size);
-        headers[2].iov_len = strlen(headers[2].iov_base);
-        headers[3].iov_base = "Content-Type: text/html" HTTP_CRLF;
-        headers[3].iov_len = strlen(headers[3].iov_base);
-        headers[4].iov_base = HTTP_CRLF;
-        headers[4].iov_len = strlen(headers[4].iov_base);
-        //        headers[1].iov_base = "Connection: Close" HTTP_CRLF;
+//    apr_file_t *apr_file = NULL;
+//    const conf_opt_t *opt = conf_get_opt(CF_DOCUMENT_ROOT, client->rtc);
+//    char filepath[PATH_MAX];
+//    
+//    snprintf(filepath, PATH_MAX, "%s%s", opt->u.str_val, client->req->uri);
+//    
+//    log_debug("Serving from %s ", filepath);
+//    
+//	apr_status_t rv = apr_file_open(&apr_file, filepath, 
+//            APR_FOPEN_READ | APR_FOPEN_BUFFERED | APR_FOPEN_SENDFILE_ENABLED, 
+//            APR_FPROT_OS_DEFAULT, client->mem_pool);
+//	if (rv == APR_SUCCESS) {
+//        
+//        apr_finfo_t finfo;
+//        rv = apr_file_info_get(&finfo, APR_FINFO_NORM, apr_file);
+//        if (rv != APR_SUCCESS) {
+//            server_err = TRUE;
+//            APR_ERR_PRINT(rv);
+//            goto cleanup;
+//        }
+//        
+//        // set response headers
+//        char rfc822[APR_RFC822_DATE_LEN + 1];
+//        apr_rfc822_date(rfc822, apr_time_now());
+//        
+//        struct iovec headers[5];
+//        headers[0].iov_base = "HTTP/1.1 200 OK" HTTP_CRLF;
+//        headers[0].iov_len = strlen(headers[0].iov_base);
+//        headers[1].iov_base = apr_psprintf(client->mem_pool, 
+//                "Date: %s" HTTP_CRLF, rfc822);
 //        headers[1].iov_len = strlen(headers[1].iov_base);
-        
-        apr_hdtr_t hdr;
-        hdr.headers = headers;
-        hdr.numheaders = 5;
-        hdr.numtrailers = 0;
-        
-        apr_off_t offset = 0;
-        apr_size_t len = finfo.size;
-        apr_size_t expected_len = 0;
-        for (int i = 0; i < hdr.numheaders; i++) {
-            log_debug("HDR: %s", headers[i].iov_base);
-            expected_len += headers[i].iov_len;
-        }
-        expected_len += finfo.size;
-        
-        rv = apr_socket_sendfile(client->sock, apr_file, &hdr, &offset, &len, 0);
-        if (rv != APR_SUCCESS) {
-            server_err = TRUE;
-        } else if (len != expected_len) {
-            log_warn("Sent %" APR_SIZE_T_FMT " of %" APR_SIZE_T_FMT " bytes", 
-                    len, expected_len);
-        }
-    } else {
-		log_err("File not found - %s", filepath);
-		APR_ERR_PRINT(rv);
-		const char *resp_hdr = "HTTP/1.0 404 Not Found" \
-				HTTP_CRLF HTTP_CRLF;
-		apr_size_t len = strlen(resp_hdr);
-		apr_socket_send(client->sock, resp_hdr, &len);        
-    }
-    
-	//    if (filepath) {
-	//        apr_status_t rv;
-	//        apr_file_t *fp;
-	//
-	//        if ((rv = apr_file_open(&fp, filepath, APR_READ, APR_OS_DEFAULT, mp)) == APR_SUCCESS) {
-	//            const char *resp_hdr;
-	//            apr_size_t len;
-	//            const char *resp_body;
-	//
-	//            apr_finfo_t finfo;
-	//            apr_file_info_get(&finfo, APR_FINFO_SIZE, fp);
-	//
-	//            resp_hdr = apr_psprintf(mp, "HTTP/1.0 200 OK" CRLF_STR "Content-Length: %" APR_OFF_T_FMT CRLF_STR CRLF_STR, finfo.size);
-	//            len = strlen(resp_hdr);
-	//            apr_socket_send(sock, resp_hdr, &len);
-	//
-	//            resp_body = apr_palloc(mp, finfo.size);
-	//            len = finfo.size;
-	//            apr_file_read(fp, (void*)resp_body, &len);
-	//            apr_socket_send(sock, resp_body, &len);
-	//
-	//            return TRUE;
-	//        }
-	//    }
+//        headers[2].iov_base = apr_psprintf(client->mem_pool, 
+//                "Content-Length: %" APR_OFF_T_FMT HTTP_CRLF, finfo.size);
+//        headers[2].iov_len = strlen(headers[2].iov_base);
+//        headers[3].iov_base = "Content-Type: text/html" HTTP_CRLF;
+//        headers[3].iov_len = strlen(headers[3].iov_base);
+//        headers[4].iov_base = HTTP_CRLF;
+//        headers[4].iov_len = strlen(headers[4].iov_base);
+//        //        headers[1].iov_base = "Connection: Close" HTTP_CRLF;
+////        headers[1].iov_len = strlen(headers[1].iov_base);
+//        
+//        apr_hdtr_t hdr;
+//        hdr.headers = headers;
+//        hdr.numheaders = 5;
+//        hdr.numtrailers = 0;
+//        
+//        apr_off_t offset = 0;
+//        apr_size_t len = finfo.size;
+//        apr_size_t expected_len = 0;
+//        for (int i = 0; i < hdr.numheaders; i++) {
+//            log_debug("HDR: %s", headers[i].iov_base);
+//            expected_len += headers[i].iov_len;
+//        }
+//        expected_len += finfo.size;
+//        
+//        rv = apr_socket_sendfile(client->sock, apr_file, &hdr, &offset, &len, 0);
+//        if (rv != APR_SUCCESS) {
+//            server_err = TRUE;
+//        } else if (len != expected_len) {
+//            log_warn("Sent %" APR_SIZE_T_FMT " of %" APR_SIZE_T_FMT " bytes", 
+//                    len, expected_len);
+//        }
+//    } else {
+//		log_err("File not found - %s", filepath);
+//		APR_ERR_PRINT(rv);
+//		const char *resp_hdr = "HTTP/1.0 404 Not Found" \
+//				HTTP_CRLF HTTP_CRLF;
+//		apr_size_t len = strlen(resp_hdr);
+//		apr_socket_send(client->sock, resp_hdr, &len);        
+//    }
 
 cleanup:
     
@@ -271,13 +283,17 @@ cleanup:
 		apr_socket_send(client->sock, resp_hdr, &len);
 	}
 
+    // remove socket
+    apr_pollfd_t pfd = { client->mem_pool, APR_POLL_SOCKET, APR_POLLOUT, 0, 
+        { NULL }, client };
+    pfd.desc.s = client->sock;
+    apr_pollset_remove(pollset, &pfd);
+    
 	apr_socket_close(client->sock);
 	/*
 	 * Destroy memory pool and sub-pools
 	 */
 	apr_pool_destroy(client->mem_pool);
-
-	pthread_exit(0);
 }
 
 status_code_t httpsrv_create(web_server_t **ws, runtime_context_t *rtc) {
@@ -287,7 +303,7 @@ status_code_t httpsrv_create(web_server_t **ws, runtime_context_t *rtc) {
 			sizeof(web_server_t));
 	websrv->hostname = apr_pstrdup(rtc->mem_pool, CF_STR(CF_LISTEN_ADDRESS));
 	websrv->port = CF_INT(CF_LISTEN_PORT);
-
+    
 	*ws = websrv;
 
 	return SC_OK;
@@ -342,37 +358,36 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
                 apr_socket_timeout_set(client_sock, 0);
 
                 // create new client
-                web_client_t *client = (web_client_t *)apr_palloc(rtc->mem_pool,
-                        sizeof(web_client_t));
+                web_client_t *client = NULL;
+                if (SC_OK != s_wc_create(&client, rtc)) {
+                    log_warn("Failed to create client!");
+                    continue;
+                }
                 client->sock = client_sock;
-                client->connected = TRUE;
-                client->done = FALSE;
-                client->rtc = rtc;
-                apr_pool_create(&(client->mem_pool), rtc->mem_pool);
-
-                apr_pollfd_t pfd = { rtc->mem_pool, APR_POLL_SOCKET, 
+                
+                apr_pollfd_t pfd = { client->mem_pool, APR_POLL_SOCKET, 
                     APR_POLLIN, 0, { NULL }, client };
-                pfd.desc.s = client_sock;
+                pfd.desc.s = client->sock;
 
                 apr_pollset_add(pollset, &pfd);
-
             } else {
                 // TODO: service existing connection
-                web_client_t *client = 
-                        (web_client_t *) ret_pfd[i].client_data;
+//                web_client_t *client = 
+//                        (web_client_t *) ret_pfd[i].client_data;
+                s_process_client(ret_pfd[i].client_data, pollset);
                 log_debug("SOCKET[%d] data has arrived.", i);
                 
-                while (1) {
-                    char buf[BUFSIZE];
-                    apr_size_t len = sizeof(buf) - 1;/* -1 for a null-terminated */
-
-                    apr_status_t rv = apr_socket_recv(client->sock, buf, &len);
-                    if (rv == APR_EOF || len == 0) {
-                        break;
-                    }
-                    buf[len] = '\0';/* apr_socket_recv() doesn't return a null-terminated string */
-                    log_debug("SOCKET[%d] DATA: %s \n", i, buf);
-                }                
+//                while (1) {
+//                    char buf[BUFSIZE];
+//                    apr_size_t len = sizeof(buf) - 1;/* -1 for a null-terminated */
+//
+//                    apr_status_t rv = apr_socket_recv(client->sock, buf, &len);
+//                    if (rv == APR_EOF || len == 0) {
+//                        break;
+//                    }
+//                    buf[len] = '\0';/* apr_socket_recv() doesn't return a null-terminated string */
+//                    log_debug("SOCKET[%d] DATA: %s \n", i, buf);
+//                }                
             }
         }
 //		int ptrc = pthread_create(&client->thread, NULL,

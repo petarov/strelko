@@ -23,6 +23,39 @@
 extern "C" {
 #endif
 
+#define HTTP_CRLF		"\r\n"
+#define HTTP_METHOD_GET		"GET"
+#define HTTP_METHOD_POST	"POST"
+#define HTTP_METHOD_PUT		"PUT"
+#define HTTP_METHOD_DELETE	"DELETE"    
+    
+/*
+ * HTTP messages consist of requests from client to server and responses from server to client.
+ * HTTP-message   = Request | Response     ; HTTP/1.1 messages
+ *
+ * generic-message 	= start-line
+ * 					*(message-header CRLF)
+ * 					CRLF
+ * 					[ message-body ]
+ * start-line		= Request-Line | Status-Line
+*/
+
+/*
+ * Request-Line   = Method SP Request-URI SP HTTP-Version CRLF
+ */
+struct http_request_t {
+	const char *method;
+	char *uri;
+	char *http_version;
+
+	char *message_body;
+	char *raw_body;
+
+	char *cookies;
+
+	const char *content_type;
+	long content_len;
+};
 typedef struct http_request_t http_request_t;
 
 struct web_server_t {
@@ -38,7 +71,9 @@ struct web_client_t {
 	apr_socket_t *sock;
 	int connected;
 	int done;
-	http_request_t *req;
+	http_request_t req;
+        char *bucket;
+        int blen;
 	runtime_context_t *rtc;
 	/*
 	 * Each client should maintain it's own memory pool.

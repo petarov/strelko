@@ -29,7 +29,6 @@ set(SOURCES
     signals.c
     utils.c
     httpserver.c
-    http.c
     ../ext/http-parser/http_parser.c
 )
 
