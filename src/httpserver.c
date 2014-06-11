@@ -79,7 +79,6 @@ static status_code_t s_wc_create(web_client_t **wc, runtime_context_t *rtc) {
     
     apr_pool_create(&(client->mem_pool), rtc->mem_pool);
     
-    client->connected = TRUE;
     client->done = FALSE;
     client->bucket = (char *)apr_palloc(client->mem_pool, BUFSIZE * 2);
     client->blen = 0;
@@ -163,36 +162,38 @@ static void s_process_client(void *clientptr, apr_pollset_t *pollset) {
 		if (strstr(buf, HTTP_CRLF HTTP_CRLF)) {
             client->done = TRUE;
             
+            log_debug("Bucket: %s", client->bucket);
+            
             // change socket status
             apr_pollfd_t pfd = { client->mem_pool, APR_POLL_SOCKET, APR_POLLIN, 
                 0, { NULL }, client };
             pfd.desc.s = client->sock;
             apr_pollset_remove(pollset, &pfd);
+            
             pfd.reqevents = APR_POLLOUT;
             apr_pollset_add(pollset, &pfd);
             
             // parse HTTP request
-            http_parser *parser = apr_palloc(client->mem_pool, sizeof(http_parser));
+            http_parser parser;
+            parser.data = clientptr;
+            http_parser_init(&parser, HTTP_REQUEST);
+            
             http_parser_settings settings = {
                 NULL, request_uri_cb, NULL, http_header_field_cb, 
                 http_header_value_cb, http_header_done_cb, http_body_cb, 
                 http_message_complete_cb
             };
             
-            log_debug("Bucket: %s", client->bucket);
-            
-            parser->data = clientptr;
-            http_parser_init(parser, HTTP_REQUEST);
-            apr_size_t parsed_len = http_parser_execute(parser, &settings, 
-                    client->bucket, recv_len);
+            apr_size_t parsed_len = http_parser_execute(&parser, &settings, 
+                    client->bucket, client->blen);
 
-            if (parsed_len != recv_len) {
+            if (parsed_len != client->blen) {
                 log_err("Request failed! Parsed length=%d, received=%d",
-                        parsed_len, recv_len);
+                        parsed_len, client->blen);
                 server_err = TRUE;
                 break;
             } else {
-                // DUMMY
+                // DUMMY RESPONSE -> TODO
                 const char *resp_hdr = "HTTP/1.0 501 Internal Server Error" \
                         HTTP_CRLF HTTP_CRLF;
                 apr_size_t len = strlen(resp_hdr);
@@ -321,7 +322,7 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 	if (APR_SUCCESS != (rv = s_listen(ws, rtc->mem_pool)))
 		return SC_WS_LISTEN_FAILED;
 
-    // Set up a pollset object
+    // set up a pollset object
     apr_pollset_create(&pollset, POLL_CONN_SIZE, rtc->mem_pool, 0);
     {
         apr_pollfd_t pfd = { rtc->mem_pool, APR_POLL_SOCKET, APR_POLLIN, 
@@ -342,12 +343,11 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
             if (ret_pfd[i].desc.s == ws->sock) {
                 // listening socket is readable -> new connection
                 apr_socket_t *client_sock;
-                log_debug("NEW SCOKET created.");
 
                 rv = apr_socket_accept(&client_sock, ws->sock, rtc->mem_pool);
                 if (rv != APR_SUCCESS) {
                     // just notify
-                    log_err("Client socket failed !");
+                    log_err("Socket accept failed!");
                     APR_ERR_PRINT(rv);
                     continue;
                 }
@@ -370,33 +370,11 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 
                 apr_pollset_add(pollset, &pfd);
             } else {
-                // TODO: service existing connection
-//                web_client_t *client = 
-//                        (web_client_t *) ret_pfd[i].client_data;
+                // incoming socket data
+                log_debug("SOCKET[%d]: data has arrived.", i);
                 s_process_client(ret_pfd[i].client_data, pollset);
-                log_debug("SOCKET[%d] data has arrived.", i);
-                
-//                while (1) {
-//                    char buf[BUFSIZE];
-//                    apr_size_t len = sizeof(buf) - 1;/* -1 for a null-terminated */
-//
-//                    apr_status_t rv = apr_socket_recv(client->sock, buf, &len);
-//                    if (rv == APR_EOF || len == 0) {
-//                        break;
-//                    }
-//                    buf[len] = '\0';/* apr_socket_recv() doesn't return a null-terminated string */
-//                    log_debug("SOCKET[%d] DATA: %s \n", i, buf);
-//                }                
             }
         }
-//		int ptrc = pthread_create(&client->thread, NULL,
-//				(void *)s_process_client, (void *)client);
-//        if (ptrc) {
-//            log_warn("Could not create thread! (%d)", ptrc);
-//        } else {
-//            // TODO: remove
-//            pthread_join(client->thread, NULL);
-//        }
 	}
 
 	return SC_OK;
@@ -404,10 +382,9 @@ status_code_t httpsrv_start(web_server_t *ws, runtime_context_t *rtc) {
 
 void httpsrv_stop(web_server_t *ws) {
 	TRACE;
-//	ASSERT(ws != NULL);
+
 	if (ws != NULL) {
 		log_info("Shutting down http server %s:%d ...", ws->hostname, ws->port);
 		ws->is_running = FALSE;
-		// TODO: block while all threads are stopped?
 	}
 }

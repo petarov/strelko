@@ -82,7 +82,6 @@ struct web_client_t {
         /**
          * Flags
          */
-	int connected;
 	int done;
 	/*
 	 * Each client should maintain it's own memory pool.
