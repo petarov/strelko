@@ -30,7 +30,9 @@ extern "C" {
 #define HTTP_METHOD_DELETE	"DELETE"    
     
 /*
- * HTTP messages consist of requests from client to server and responses from server to client.
+ * HTTP messages consist of requests from client to server and responses from 
+ * server to client.
+ * 
  * HTTP-message   = Request | Response     ; HTTP/1.1 messages
  *
  * generic-message 	= start-line
@@ -67,14 +69,21 @@ struct web_server_t {
 typedef struct web_server_t web_server_t;
 
 struct web_client_t {
-	pthread_t thread; // TODO: remove
 	apr_socket_t *sock;
-	int connected;
-	int done;
-	http_request_t req;
+        /**
+         * Store incoming data into byte bucket
+         */
         char *bucket;
         int blen;
-	runtime_context_t *rtc;
+        /**
+         * Store parsed http request
+         */
+	http_request_t req;
+        /**
+         * Flags
+         */
+	int connected;
+	int done;
 	/*
 	 * Each client should maintain it's own memory pool.
 	 * When request is parsed and served the pool will be destroyed.
@@ -83,25 +92,6 @@ struct web_client_t {
 	apr_pool_t *mem_pool;
 };
 typedef struct web_client_t web_client_t;
-
-/**
- * Thread pool control structure that manages a queue of created threads.
- */
-struct thread_pool_t {
-	web_client_t *head;	// queue head
-	web_client_t *tail;	// queue tail
-	int size;	// size of items in queue
-	int num_active;	// size of occupied threads
-	pthread_t *threads;
-	pthread_mutex_t tlock;
-	int stop;
-};
-typedef struct thread_pool_t thread_pool_t;
-
-/**
- * Client thread pool limit
- */
-#define MAX_CLIENTS_IN_POOL 100
 
 /**
  * Creates a webserver configuration instance

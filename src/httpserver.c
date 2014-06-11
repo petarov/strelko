@@ -81,7 +81,6 @@ static status_code_t s_wc_create(web_client_t **wc, runtime_context_t *rtc) {
     
     client->connected = TRUE;
     client->done = FALSE;
-    client->rtc = rtc;
     client->bucket = (char *)apr_palloc(client->mem_pool, BUFSIZE * 2);
     client->blen = 0;
     
