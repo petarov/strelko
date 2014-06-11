@@ -38,7 +38,7 @@ APP_DEBUG_MESSAGE("Sources: ${SOURCES}")
 
 ### Build #################################################################
 remove_definitions(-Wall)
-add_executable(strelko_tests ${SOURCES})
+add_executable(strelkotests ${SOURCES})
 
-target_link_libraries(strelko_tests ${APR_LIB_NAME} ${APRUTIL_LIB_NAME} 
+target_link_libraries(strelkotests ${APR_LIB_NAME} ${APRUTIL_LIB_NAME} 
     ${CMAKE_THREAD_LIBS_INIT})

@@ -35,7 +35,6 @@ set(SOURCES
 APP_DEBUG_MESSAGE("Sources: ${SOURCES}")
 
 ### Build #################################################################
-add_executable(strelko_srv ${SOURCES})
+add_executable(strelkosrv ${SOURCES})
 
-target_link_libraries(strelko_srv ${APR_LIB_NAME} ${APRUTIL_LIB_NAME} 
-    ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(strelkosrv ${APR_LIB_NAME} ${APRUTIL_LIB_NAME})

@@ -47,7 +47,7 @@ configure_file (
   
 ### requirements
 # PThread
-find_package(Threads REQUIRED)
+#find_package(Threads REQUIRED)
 
 # APR lib
 if (UNIX AND NOT WIN32)

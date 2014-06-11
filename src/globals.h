@@ -40,8 +40,6 @@ typedef int64_t		int64;
 //typedef __off64_t off64_t;
 //#endif
 
-#include <pthread.h>
-
 #include <assert.h>
 #ifdef DEBUG
 #define ASSERT(x) assert(x)

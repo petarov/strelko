@@ -18,7 +18,7 @@ However, **Strelko** is smaller and has no dependencies.
 
 # Usage
 
-    $ strelko_srv -h <listen address> -p <listen port>
+    $ strelkosrv -h <listen address> -p <listen port>
 
 # Development
 ## Installation
